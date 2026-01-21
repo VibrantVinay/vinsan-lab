@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vinmax Omni-Lab Simulator</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: 'Courier New', Courier, monospace; background: #1a1a1a; }
+        #canvas-container { width: 100vw; height: 100vh; }
+        
+        /* The Toolbox UI */
+        #ui-panel {
+            position: absolute; top: 10px; left: 10px;
+            background: rgba(0, 0, 0, 0.8); color: #00ff00;
+            padding: 15px; border: 1px solid #00ff00; border-radius: 8px;
+            width: 250px;
+        }
+        h3 { margin-top: 0; border-bottom: 1px solid #00ff00; padding-bottom: 5px; }
+        button {
+            width: 100%; margin: 5px 0; padding: 10px;
+            background: #003300; color: #00ff00; border: 1px solid #00ff00;
+            cursor: pointer; transition: 0.3s;
+        }
+        button:hover { background: #00ff00; color: #000; }
+        .instruction { font-size: 12px; color: #aaa; margin-top: 10px; }
+        
+        /* Debug / Status Overlay */
+        #status-panel {
+            position: absolute; bottom: 10px; right: 10px;
+            background: rgba(0, 0, 0, 0.8); color: cyan;
+            padding: 10px; border: 1px solid cyan;
+        }
+    </style>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <div id="ui-panel">
+        <h3>Omni-Lab Toolbox</h3>
+        <button id="add-arduino">Add MCU Board (Power)</button>
+        <button id="add-breadboard">Add Breadboard</button>
+        <button id="add-led">Add LED Component</button>
+        <hr style="border-color: #004400;">
+        <button id="mode-select">Mode: SELECT</button>
+        <button id="mode-wire">Mode: WIRE (Connect Pins)</button>
+        <div class="instruction">
+            WASD/Mouse to Move.<br>
+            <b>Wire Mode:</b> Click Source (Red) -> Target (Blue) to connect.
+        </div>
+    </div>
+
+    <div id="status-panel">System: READY</div>
+    <div id="canvas-container"></div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // --- GLOBAL STATE ---
+        const sceneState = {
+            components: [],
+            wires: [],
+            mode: 'SELECT', // 'SELECT' or 'WIRE'
+            selectedPin: null, // First pin selected in wire mode
+            simTime: 0
+        };
+
+        // --- SETUP THREE.JS SCENE ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x222222);
+        scene.fog = new THREE.Fog(0x222222, 10, 50);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(5, 8, 8);
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        container.appendChild(renderer.domElement);
+
+        // Lighting
+        const ambLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+        dirLight.position.set(5, 10, 7);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+
+        // Grid (The Workbench)
+        const gridHelper = new THREE.GridHelper(20, 20);
+        scene.add(gridHelper);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+
+        // --- COMPONENT FACTORY ---
+        // Basic class structure to manage logic and 3D mesh together
+        class ElectronicComponent {
+            constructor(name, x, z) {
+                this.name = name;
+                this.mesh = new THREE.Group();
+                this.mesh.position.set(x, 0, z);
+                this.pins = []; // Interaction points
+                this.logicState = {}; // Internal simulation state
+                scene.add(this.mesh);
+                sceneState.components.push(this);
+            }
+
+            addPin(localX, localY, localZ, type, id) {
+                const pinGeo = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+                const pinMat = new THREE.MeshStandardMaterial({ color: type === 'pwr' ? 0xff0000 : 0x0000ff });
+                const pin = new THREE.Mesh(pinGeo, pinMat);
+                pin.position.set(localX, localY, localZ);
+                pin.userData = { isPin: true, parentComp: this, type: type, id: id };
+                this.mesh.add(pin);
+                this.pins.push(pin);
+            }
+        }
+
+        // 1. MCU Board (Source of Power)
+        class MCUBoard extends ElectronicComponent {
+            constructor(x, z) {
+                super('Arduino Uno', x, z);
+                // Board Base
+                const boardGeo = new THREE.BoxGeometry(3, 0.2, 2);
+                const boardMat = new THREE.MeshStandardMaterial({ color: 0x0088aa });
+                const base = new THREE.Mesh(boardGeo, boardMat);
+                base.castShadow = true;
+                this.mesh.add(base);
+                
+                // Add "Power" Pin (Logic Source)
+                this.addPin(1.2, 0.2, -0.8, 'pwr', '5V'); 
+                // Add "GND" Pin
+                this.addPin(1.2, 0.2, 0.8, 'gnd', 'GND');
+            }
+        }
+
+        // 2. Breadboard (Passive Connection Grid)
+        class Breadboard extends ElectronicComponent {
+            constructor(x, z) {
+                super('Breadboard', x, z);
+                const bbGeo = new THREE.BoxGeometry(4, 0.2, 2.5);
+                const bbMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+                const base = new THREE.Mesh(bbGeo, bbMat);
+                base.castShadow = true;
+                this.mesh.add(base);
+
+                // Add a few test rows
+                this.addPin(-1, 0.2, 0, 'node', 'Row1-A');
+                this.addPin(1, 0.2, 0, 'node', 'Row1-B');
+            }
+        }
+
+        // 3. LED (Visual Output)
+        class LED extends ElectronicComponent {
+            constructor(x, z) {
+                super('LED', x, z);
+                // Legs
+                const legGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.5);
+                const legMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa });
+                const leg1 = new THREE.Mesh(legGeo, legMat); leg1.position.set(-0.1, 0.25, 0);
+                const leg2 = new THREE.Mesh(legGeo, legMat); leg2.position.set(0.1, 0.25, 0);
+                this.mesh.add(leg1); this.mesh.add(leg2);
+
+                // Bulb
+                const bulbGeo = new THREE.SphereGeometry(0.25);
+                this.bulbMat = new THREE.MeshStandardMaterial({ color: 0x330000, emissive: 0x000000 });
+                this.bulb = new THREE.Mesh(bulbGeo, this.bulbMat);
+                this.bulb.position.set(0, 0.6, 0);
+                this.mesh.add(this.bulb);
+
+                // Pins for wiring
+                this.addPin(-0.1, 0, 0, 'node', 'Anode');
+                this.addPin(0.1, 0, 0, 'node', 'Cathode');
+            }
+
+            update(powered) {
+                if (powered) {
+                    this.bulbMat.color.setHex(0xff0000);
+                    this.bulbMat.emissive.setHex(0xff0000);
+                    this.bulbMat.emissiveIntensity = 2;
+                } else {
+                    this.bulbMat.color.setHex(0x330000);
+                    this.bulbMat.emissive.setHex(0x000000);
+                }
+            }
+        }
+
+        // --- INTERACTION LOGIC (RAYCASTING) ---
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        function onMouseClick(event) {
+            if (event.target.id !== 'canvas-container' && event.target.tagName !== 'CANVAS') return;
+
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            
+            // Get all pins in scene
+            const allPins = [];
+            sceneState.components.forEach(c => allPins.push(...c.pins));
+            
+            const intersects = raycaster.intersectObjects(allPins);
+
+            if (intersects.length > 0) {
+                const clickedPin = intersects[0].object;
+                handlePinClick(clickedPin);
+            }
+        }
+
+        function handlePinClick(pin) {
+            if (sceneState.mode === 'WIRE') {
+                if (!sceneState.selectedPin) {
+                    // Step 1: Select Source
+                    sceneState.selectedPin = pin;
+                    pin.material.color.setHex(0xffff00); // Highlight yellow
+                    document.getElementById('status-panel').innerText = `Wiring: Selected ${pin.userData.id}. Select Target.`;
+                } else {
+                    // Step 2: Select Target & Create Wire
+                    createWire(sceneState.selectedPin, pin);
+                    
+                    // Reset
+                    sceneState.selectedPin.material.color.setHex(pin.userData.type === 'pwr' ? 0xff0000 : 0x0000ff); // Reset color
+                    sceneState.selectedPin = null;
+                    document.getElementById('status-panel').innerText = `Wiring: Connected!`;
+                }
+            }
+        }
+
+        function createWire(pinA, pinB) {
+            // Logic: Store connection
+            sceneState.wires.push({ source: pinA, target: pinB });
+
+            // Visuals: Draw line curve
+            const startPos = new THREE.Vector3();
+            const endPos = new THREE.Vector3();
+            pinA.getWorldPosition(startPos);
+            pinB.getWorldPosition(endPos);
+
+            // Simple Bezier for jumper wire
+            const midHeight = 1 + Math.random(); // Arch height
+            const curve = new THREE.QuadraticBezierCurve3(
+                startPos,
+                new THREE.Vector3((startPos.x + endPos.x)/2, midHeight, (startPos.z + endPos.z)/2),
+                endPos
+            );
+
+            const points = curve.getPoints(20);
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const material = new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 2 });
+            const wireCurve = new THREE.Line(geometry, material);
+            scene.add(wireCurve);
+        }
+
+        // --- SIMULATION LOOP (The "Brain") ---
+        function runSimulation() {
+            // Simplified Logic: 
+            // 1. Find all MCU Power Pins.
+            // 2. Trace wires to see if they hit an LED.
+            
+            // Reset all LEDs first
+            sceneState.components.forEach(c => {
+                if (c instanceof LED) c.update(false);
+            });
+
+            // Trace Power
+            sceneState.wires.forEach(wire => {
+                const p1 = wire.source;
+                const p2 = wire.target;
+
+                // Check if connection is from MCU Power -> LED
+                if (p1.userData.type === 'pwr' && p2.userData.parentComp instanceof LED) {
+                    p2.userData.parentComp.update(true);
+                }
+                if (p2.userData.type === 'pwr' && p1.userData.parentComp instanceof LED) {
+                    p1.userData.parentComp.update(true);
+                }
+            });
+        }
+
+        // --- UI HANDLERS ---
+        document.getElementById('add-arduino').onclick = () => new MCUBoard(Math.random()*4 - 2, Math.random()*4 - 2);
+        document.getElementById('add-breadboard').onclick = () => new Breadboard(Math.random()*4 - 2, Math.random()*4 - 2);
+        document.getElementById('add-led').onclick = () => new LED(Math.random()*4 - 2, Math.random()*4 - 2);
+        
+        document.getElementById('mode-wire').onclick = () => {
+            sceneState.mode = 'WIRE';
+            document.getElementById('status-panel').innerText = "Mode: WIRE - Click pins to connect.";
+        };
+        document.getElementById('mode-select').onclick = () => {
+            sceneState.mode = 'SELECT';
+            sceneState.selectedPin = null;
+            document.getElementById('status-panel').innerText = "Mode: SELECT - View only.";
+        };
+
+        window.addEventListener('click', onMouseClick);
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- ANIMATION LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            runSimulation(); // Continuous logic check
+            renderer.render(scene, camera);
+        }
+        animate();
+
+    </script>
+</body>
+</html>
