@@ -3,476 +3,710 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vinsan Omni-Lab Simulator v2</title>
+    <title>Vinmax Omni-Lab Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: #e0e0e0; }
+        :root {
+            --bg-dark: #121212;
+            --bg-panel: #1e1e1e;
+            --bg-header: #252525;
+            --accent: #007acc; /* VS Code Blue */
+            --accent-hover: #0098ff;
+            --text-main: #e0e0e0;
+            --text-dim: #a0a0a0;
+            --border: #333;
+            --success: #4caf50;
+            --danger: #f44336;
+        }
+
+        body { margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; background: var(--bg-dark); color: var(--text-main); user-select: none; }
         
-        /* Main Container */
-        #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
-
-        /* Floating UI Panel */
-        #ui-panel {
-            position: absolute; top: 20px; left: 20px; z-index: 10;
-            background: rgba(30, 30, 30, 0.95); 
-            padding: 20px; border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-            width: 280px; border: 1px solid #333;
+        /* LAYOUT GRID */
+        #app-container {
+            display: grid;
+            grid-template-rows: 50px 1fr 30px;
+            grid-template-columns: 260px 1fr 260px;
+            height: 100vh; width: 100vw;
         }
 
-        h3 { margin: 0 0 15px 0; font-size: 18px; color: #4caf50; border-bottom: 2px solid #4caf50; padding-bottom: 8px; }
-
-        /* Buttons & Inputs */
-        .btn {
-            display: block; width: 100%; padding: 12px; margin-bottom: 10px;
-            background: #2c2c2c; border: 1px solid #444; border-radius: 6px;
-            color: white; cursor: pointer; text-align: left; transition: all 0.2s;
-            font-size: 14px;
+        /* 1. TOP HEADER (Toolbar) */
+        header {
+            grid-column: 1 / -1;
+            background: var(--bg-header);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; padding: 0 20px;
+            justify-content: space-between;
         }
-        .btn:hover { background: #3a3a3a; border-color: #4caf50; }
-        .btn.active { background: #1b5e20; border-color: #4caf50; }
-
-        /* Board Selection Modal (Hidden by default) */
-        #board-market {
-            display: none; position: absolute; top: 50%; left: 50%; 
-            transform: translate(-50%, -50%); z-index: 20;
-            background: #1e1e1e; padding: 25px; border-radius: 15px;
-            width: 500px; box-shadow: 0 0 50px rgba(0,0,0,0.8);
-            border: 1px solid #444;
+        .brand { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--accent); font-size: 18px; letter-spacing: 1px; }
+        .toolbar-center { display: flex; gap: 10px; background: #1a1a1a; padding: 4px; border-radius: 6px; border: 1px solid var(--border); }
+        .tool-btn {
+            background: transparent; border: none; color: var(--text-dim);
+            padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600;
+            transition: 0.2s; display: flex; align-items: center; gap: 6px;
         }
-        #board-market h2 { margin-top: 0; color: #4caf50; }
-        .board-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; max-height: 400px; overflow-y: auto; }
-        .market-item {
-            background: #252525; padding: 15px; border-radius: 8px; border: 1px solid #333;
-            cursor: pointer; transition: 0.2s;
+        .tool-btn:hover { background: #333; color: white; }
+        .tool-btn.active { background: var(--accent); color: white; }
+        .sim-controls { display: flex; gap: 10px; }
+        .sim-btn {
+            background: var(--success); color: white; border: none; padding: 6px 16px; 
+            border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px;
+            display: flex; align-items: center; gap: 5px;
         }
-        .market-item:hover { background: #333; border-color: #4caf50; }
-        .market-item h4 { margin: 0 0 5px 0; color: white; }
-        .market-item p { margin: 0; font-size: 12px; color: #aaa; }
-        .close-btn { 
-            position: absolute; top: 15px; right: 15px; background: none; border: none; 
-            color: #aaa; font-size: 20px; cursor: pointer; width: auto; 
+        .sim-btn.stop { background: var(--danger); display: none; }
+
+        /* 2. LEFT SIDEBAR (Library) */
+        #library-panel {
+            grid-row: 2; grid-column: 1;
+            background: var(--bg-panel); border-right: 1px solid var(--border);
+            overflow-y: auto; padding: 0;
         }
+        .panel-header {
+            padding: 15px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; 
+            color: var(--text-dim); font-weight: bold; border-bottom: 1px solid var(--border);
+            background: #222;
+        }
+        .category-title {
+            padding: 12px 15px; font-size: 13px; font-weight: 600; cursor: pointer;
+            background: #2a2a2a; border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between;
+        }
+        .category-title:hover { background: #333; }
+        .category-content { display: grid; gap: 8px; padding: 10px; }
+        .part-card {
+            background: #333; padding: 10px; border-radius: 4px; cursor: pointer;
+            border: 1px solid transparent; transition: 0.2s; display: flex; align-items: center; gap: 10px;
+        }
+        .part-card:hover { border-color: var(--accent); background: #3a3a3a; }
+        .part-icon { width: 30px; height: 30px; background: #222; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        .part-info h4 { margin: 0; font-size: 13px; color: white; }
+        .part-info p { margin: 2px 0 0; font-size: 10px; color: #aaa; }
 
-        /* Color Picker for Wires */
-        .color-picker { display: flex; gap: 5px; margin-bottom: 10px; }
-        .color-opt { width: 25px; height: 25px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
-        .color-opt.selected { border-color: white; transform: scale(1.1); }
+        /* 3. CENTER (Canvas) */
+        #canvas-wrapper {
+            grid-row: 2; grid-column: 2;
+            position: relative; overflow: hidden; background: #000;
+        }
+        #canvas-container { width: 100%; height: 100%; outline: none; }
 
-        /* Status Bar */
-        #status-bar {
+        /* 4. RIGHT SIDEBAR (Properties) */
+        #properties-panel {
+            grid-row: 2; grid-column: 3;
+            background: var(--bg-panel); border-left: 1px solid var(--border);
+            padding: 20px;
+        }
+        .prop-group { margin-bottom: 20px; }
+        .prop-label { display: block; font-size: 11px; color: var(--text-dim); margin-bottom: 5px; }
+        .prop-value { 
+            width: 100%; background: #111; border: 1px solid var(--border); color: white;
+            padding: 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 12px;
+        }
+        .color-palette { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px; }
+        .color-swatch { 
+            width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent;
+            transition: transform 0.2s; 
+        }
+        .color-swatch.active { border-color: white; transform: scale(1.1); }
+
+        /* 5. STATUS BAR */
+        footer {
+            grid-row: 3; grid-column: 1 / -1;
+            background: var(--accent); color: white;
+            display: flex; align-items: center; padding: 0 15px; font-size: 12px; font-weight: 500;
+            justify-content: space-between;
+        }
+        .coords { font-family: 'JetBrains Mono', monospace; opacity: 0.8; }
+
+        /* OVERLAYS */
+        #controls-hint {
             position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.8); color: #4caf50; padding: 10px 30px;
-            border-radius: 30px; font-weight: bold; border: 1px solid #333; z-index: 10;
+            background: rgba(0,0,0,0.7); padding: 8px 16px; border-radius: 20px;
+            font-size: 12px; pointer-events: none; opacity: 0; transition: opacity 0.3s;
         }
+        #controls-hint.visible { opacity: 1; }
     </style>
 </head>
 <body>
 
-    <div id="ui-panel">
-        <h3>Omni-Lab Tools</h3>
+<div id="app-container">
+    <header>
+        <div class="brand">VINMAX LAB <span style="font-size:10px; color:#666; font-weight:400;">v3.0</span></div>
         
-        <button id="btn-open-market" class="btn">🛒 Add Board / MCU</button>
-        <button id="btn-add-breadboard" class="btn">▦ Add Breadboard</button>
-        <button id="btn-add-led" class="btn">💡 Add LED</button>
-        
-        <div style="margin: 15px 0; border-top: 1px solid #444; padding-top: 15px;">
-            <label style="font-size: 12px; color: #888;">Wire Color:</label>
-            <div class="color-picker" id="wire-colors">
-                <div class="color-opt selected" style="background: #ff0000;" data-hex="0xff0000"></div> <div class="color-opt" style="background: #000000;" data-hex="0x000000"></div> <div class="color-opt" style="background: #00ff00;" data-hex="0x00ff00"></div> <div class="color-opt" style="background: #0000ff;" data-hex="0x0000ff"></div> <div class="color-opt" style="background: #ffff00;" data-hex="0xffff00"></div> </div>
+        <div class="toolbar-center">
+            <button class="tool-btn active" id="tool-select" onclick="setMode('SELECT')">
+                <span>↖</span> Select
+            </button>
+            <button class="tool-btn" id="tool-wire" onclick="setMode('WIRE')">
+                <span>∿</span> Wire
+            </button>
+            <button class="tool-btn" id="tool-delete" onclick="deleteSelected()">
+                <span>🗑</span> Delete
+            </button>
         </div>
 
-        <button id="mode-select" class="btn active">👆 Select / Drag</button>
-        <button id="mode-wire" class="btn">🔌 Wire Mode</button>
+        <div class="sim-controls">
+            <button class="sim-btn" id="btn-run" onclick="toggleSim()">▶ Run Simulation</button>
+            <button class="sim-btn stop" id="btn-stop" onclick="toggleSim()">■ Stop</button>
+        </div>
+    </header>
+
+    <div id="library-panel">
+        <div class="panel-header">Component Library</div>
         
-        <div style="font-size: 11px; color: #666; margin-top: 10px;">
-            Left Click: Select/Place<br>
-            Right Click (Drag): Rotate Cam<br>
-            Scroll: Zoom
+        <div class="category-title">MICROCONTROLLERS</div>
+        <div class="category-content">
+            <div class="part-card" onclick="startPlacement('uno')">
+                <div class="part-icon" style="color:#0088aa;">U</div>
+                <div class="part-info"><h4>Arduino Uno</h4><p>ATmega328P</p></div>
+            </div>
+            <div class="part-card" onclick="startPlacement('mega')">
+                <div class="part-icon" style="color:#006688;">M</div>
+                <div class="part-info"><h4>Arduino Mega</h4><p>ATmega2560</p></div>
+            </div>
+            <div class="part-card" onclick="startPlacement('esp32')">
+                <div class="part-icon" style="color:#333; border:1px solid #555;">E</div>
+                <div class="part-info"><h4>ESP-32</h4><p>WiFi / BT Module</p></div>
+            </div>
+            <div class="part-card" onclick="startPlacement('rpi')">
+                <div class="part-icon" style="color:#27ae60;">π</div>
+                <div class="part-info"><h4>Raspberry Pi 4</h4><p>Linux SBC</p></div>
+            </div>
+        </div>
+
+        <div class="category-title">BASICS</div>
+        <div class="category-content">
+            <div class="part-card" onclick="startPlacement('breadboard')">
+                <div class="part-icon" style="color:#eee;">▦</div>
+                <div class="part-info"><h4>Breadboard</h4><p>830 Tie-Points</p></div>
+            </div>
+            <div class="part-card" onclick="startPlacement('led')">
+                <div class="part-icon" style="color:#f44336;">💡</div>
+                <div class="part-info"><h4>LED (Red)</h4><p>Light Emitting Diode</p></div>
+            </div>
         </div>
     </div>
 
-    <div id="board-market">
-        <button class="close-btn" id="close-market">&times;</button>
-        <h2>Component Market</h2>
-        <div class="board-grid">
-            <div class="market-item" onclick="startPlacement('uno')">
-                <h4>Arduino Uno</h4>
-                <p>Standard ATmega328P board.</p>
+    <div id="canvas-wrapper">
+        <div id="canvas-container"></div>
+        <div id="controls-hint">Press <b>R</b> to Rotate • <b>Click</b> to Place</div>
+    </div>
+
+    <div id="properties-panel">
+        <div class="panel-header">Properties</div>
+        
+        <div id="prop-empty" style="text-align: center; color: #666; margin-top: 50px;">
+            No Component Selected
+        </div>
+
+        <div id="prop-content" style="display: none;">
+            <div class="prop-group">
+                <label class="prop-label">Name</label>
+                <input type="text" class="prop-value" id="prop-name" value="Component 1">
             </div>
-            <div class="market-item" onclick="startPlacement('mega')">
-                <h4>Arduino Mega</h4>
-                <p>Larger board, more I/O pins.</p>
+            <div class="prop-group">
+                <label class="prop-label">Type</label>
+                <div class="prop-value" id="prop-type" style="border:none; background:none; padding:0;">Arduino Uno</div>
             </div>
-            <div class="market-item" onclick="startPlacement('esp32')">
-                <h4>ESP-32 Dev Module</h4>
-                <p>Wi-Fi + Bluetooth enabled.</p>
+            <div class="prop-group">
+                <label class="prop-label">Position (X, Z)</label>
+                <div class="prop-value" id="prop-pos">0.0, 0.0</div>
             </div>
-            <div class="market-item" onclick="startPlacement('nano')">
-                <h4>Arduino Nano</h4>
-                <p>Compact breadboard-friendly.</p>
-            </div>
-            <div class="market-item" onclick="startPlacement('rpi')">
-                <h4>Raspberry Pi 4</h4>
-                <p>Single Board Computer (Green).</p>
-            </div>
+        </div>
+
+        <div class="panel-header" style="margin-top: 30px;">Wire Color</div>
+        <div class="color-palette" id="wire-palette">
+            <div class="color-swatch active" style="background:#f44336;" onclick="setWireColor(0xf44336, this)"></div>
+            <div class="color-swatch" style="background:#4caf50;" onclick="setWireColor(0x4caf50, this)"></div>
+            <div class="color-swatch" style="background:#2196f3;" onclick="setWireColor(0x2196f3, this)"></div>
+            <div class="color-swatch" style="background:#ffeb3b;" onclick="setWireColor(0xffeb3b, this)"></div>
+            <div class="color-swatch" style="background:#111; border-color:#555;" onclick="setWireColor(0x111111, this)"></div>
         </div>
     </div>
 
-    <div id="status-bar">Ready</div>
-    <div id="canvas-container"></div>
+    <footer>
+        <div id="status-msg">System Ready</div>
+        <div class="coords" id="mouse-coords">X: 0.0 Z: 0.0</div>
+    </footer>
+</div>
 
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-            }
+<script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
         }
-    </script>
+    }
+</script>
 
-    <script type="module">
-        import * as THREE from 'three';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+<script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // --- GLOBAL STATE ---
-        const state = {
-            mode: 'SELECT', // SELECT, WIRE, PLACING
-            placingType: null, // What are we placing?
-            wireColor: 0xff0000,
-            selectedPin: null,
-            ghostMesh: null // The transparent mesh following mouse
-        };
+    // --- CONFIG & STATE ---
+    const config = {
+        gridSize: 40,
+        gridStep: 1, // Visual grid lines
+        snap: 0.5    // Snapping increment
+    };
 
-        const components = [];
-        const wires = [];
+    const state = {
+        mode: 'SELECT', // SELECT, WIRE, PLACING
+        placingType: null,
+        ghost: null,
+        selection: null,
+        wireStart: null,
+        wireColor: 0xf44336,
+        rotation: 0 // Current rotation for placement (0, 1, 2, 3 -> *90deg)
+    };
 
-        // --- BOARD DEFINITIONS (The "Market" Data) ---
-        const BOARD_SPECS = {
-            'uno': { name: 'Arduino Uno', w: 3, h: 0.3, d: 2, color: 0x0088aa, pins: [{x:1.2, z:-0.8, type:'pwr'}, {x:1.2, z:0.8, type:'gnd'}] },
-            'mega': { name: 'Arduino Mega', w: 5, h: 0.3, d: 2, color: 0x006688, pins: [{x:2, z:-0.8, type:'pwr'}, {x:2, z:0.8, type:'gnd'}] },
-            'nano': { name: 'Arduino Nano', w: 1, h: 0.2, d: 3, color: 0x0088aa, pins: [{x:0.3, z:-1.2, type:'pwr'}, {x:0.3, z:1.2, type:'gnd'}] },
-            'esp32': { name: 'ESP32 DevKit', w: 1.5, h: 0.2, d: 2.5, color: 0x111111, pins: [{x:0.5, z:-1, type:'pwr'}, {x:0.5, z:1, type:'gnd'}] },
-            'rpi': { name: 'Raspberry Pi', w: 3.5, h: 0.2, d: 2.2, color: 0x27ae60, pins: [{x:1.5, z:-0.9, type:'pwr'}, {x:1.5, z:0.9, type:'gnd'}] }
-        };
+    const sceneObjects = {
+        components: [],
+        wires: [],
+        pins: [] // Flat list for raycasting
+    };
 
-        // --- SCENE SETUP ---
-        const container = document.getElementById('canvas-container');
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x1a1a1a);
-        
-        // Grid Floor
-        const gridHelper = new THREE.GridHelper(30, 30, 0x444444, 0x222222);
-        scene.add(gridHelper);
-        const planeGeo = new THREE.PlaneGeometry(30, 30);
-        const planeMat = new THREE.MeshBasicMaterial({ visible: false }); // Invisible plane for raycasting placement
-        const groundPlane = new THREE.Mesh(planeGeo, planeMat);
-        groundPlane.rotation.x = -Math.PI / 2;
-        scene.add(groundPlane);
+    // --- SCENE SETUP ---
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x151515);
+    scene.fog = new THREE.Fog(0x151515, 20, 60);
 
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(8, 12, 8);
-        
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true;
-        container.appendChild(renderer.domElement);
+    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+    camera.position.set(8, 10, 8);
 
-        const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    container.appendChild(renderer.domElement);
 
-        // Lights
-        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        dirLight.position.set(10, 20, 10);
-        dirLight.castShadow = true;
-        scene.add(dirLight);
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.1;
+    controls.maxPolarAngle = Math.PI / 2 - 0.1; // Don't go below ground
 
-        // --- COMPONENT CLASSES ---
+    // Lighting
+    const ambLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambLight);
+    
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+    dirLight.position.set(10, 20, 5);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
+    scene.add(dirLight);
 
-        class Component {
-            constructor(name) {
-                this.name = name;
-                this.mesh = new THREE.Group();
-                this.pins = [];
-            }
+    // Workbench Floor
+    const gridHelper = new THREE.GridHelper(config.gridSize, config.gridSize, 0x444444, 0x222222);
+    scene.add(gridHelper);
+
+    // Invisible Raycast Plane (The "Ground")
+    const planeGeo = new THREE.PlaneGeometry(100, 100);
+    const planeMat = new THREE.MeshBasicMaterial({ visible: false });
+    const rayPlane = new THREE.Mesh(planeGeo, planeMat);
+    rayPlane.rotation.x = -Math.PI / 2;
+    rayPlane.name = "GroundPlane";
+    scene.add(rayPlane);
+
+    // --- COMPONENT FACTORY ---
+    class LabComponent {
+        constructor(type, name) {
+            this.type = type;
+            this.name = name;
+            this.group = new THREE.Group();
+            this.pins = [];
+            this.rotationIndex = 0;
             
-            addToScene(pos) {
-                this.mesh.position.copy(pos);
-                scene.add(this.mesh);
-                components.push(this);
-            }
-
-            addPin(lx, ly, lz, type, id) {
-                const geo = new THREE.BoxGeometry(0.15, 0.15, 0.15);
-                const color = type === 'pwr' ? 0xff3333 : (type === 'gnd' ? 0x3333ff : 0xdddddd);
-                const mat = new THREE.MeshStandardMaterial({ color: color });
-                const pin = new THREE.Mesh(geo, mat);
-                pin.position.set(lx, ly, lz);
-                pin.userData = { isPin: true, parent: this, type: type, id: id };
-                this.mesh.add(pin);
-                this.pins.push(pin);
-            }
-        }
-
-        // Factory function for Boards
-        function createBoard(typeStr) {
-            const spec = BOARD_SPECS[typeStr];
-            const comp = new Component(spec.name);
-            
-            // PCB Mesh
-            const pcb = new THREE.Mesh(
-                new THREE.BoxGeometry(spec.w, spec.h, spec.d),
-                new THREE.MeshStandardMaterial({ color: spec.color, roughness: 0.6 })
-            );
-            pcb.castShadow = true;
-            comp.mesh.add(pcb);
-            
-            // Add Pins from Spec
-            spec.pins.forEach((p, i) => comp.addPin(p.x, spec.h/2 + 0.1, p.z, p.type, `Pin${i}`));
-
-            // Label
-            // (Simulated text label logic would go here, simplified for this prototype)
-
-            return comp;
+            // Base visual
+            this.buildVisuals();
         }
 
-        function createBreadboard() {
-            const comp = new Component("Breadboard");
-            const base = new THREE.Mesh(
-                new THREE.BoxGeometry(4, 0.3, 5),
-                new THREE.MeshStandardMaterial({ color: 0xf0f0f0 })
-            );
-            comp.mesh.add(base);
-            
-            // Add grid of holes (simplified pins)
-            for(let x=-1.5; x<=1.5; x+=0.5) {
-                for(let z=-2; z<=2; z+=0.5) {
-                    comp.addPin(x, 0.2, z, 'node', `r${x}c${z}`);
-                }
+        buildVisuals() {
+            // Placeholder logic to build based on type
+            let color = 0x888888;
+            let w=1, h=0.2, d=1;
+            let pinsDef = [];
+
+            switch(this.type) {
+                case 'uno': 
+                    color = 0x0088aa; w=3; d=2.1; 
+                    pinsDef = [{x:1.3, z:-0.9, t:'pwr'}, {x:1.3, z:0.9, t:'gnd'}, {x:-1.3, z:0, t:'io'}];
+                    break;
+                case 'mega':
+                    color = 0x006688; w=4.5; d=2.1;
+                    pinsDef = [{x:2, z:-0.9, t:'pwr'}, {x:2, z:0.9, t:'gnd'}];
+                    break;
+                case 'esp32':
+                    color = 0x111111; w=1.2; d=2;
+                    pinsDef = [{x:0.4, z:-0.8, t:'pwr'}, {x:0.4, z:0.8, t:'gnd'}];
+                    break;
+                case 'breadboard':
+                    color = 0xffffff; w=4; d=2.5; h=0.2;
+                    break;
+                case 'led':
+                    color = 0x333333; w=0.5; d=0.5; h=0.1;
+                    this.addLEDVisuals();
+                    pinsDef = [{x:-0.1, z:0, t:'anode'}, {x:0.1, z:0, t:'cathode'}];
+                    break;
             }
-            return comp;
+
+            // Create PCB Body
+            if(this.type !== 'led') {
+                const geo = new THREE.BoxGeometry(w, h, d);
+                const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.5 });
+                this.mesh = new THREE.Mesh(geo, mat);
+                this.mesh.castShadow = true;
+                this.mesh.receiveShadow = true;
+                this.mesh.userData = { parent: this }; // Link back to class
+                this.group.add(this.mesh);
+            }
+
+            // Create Pins
+            pinsDef.forEach((p, i) => this.addPin(p.x, h/2 + 0.05, p.z, p.t, i));
         }
 
-        function createLED() {
-            const comp = new Component("LED");
-            
-            // Legs
+        addLEDVisuals() {
+            const legGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.4);
             const legMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa });
-            const leg1 = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.6), legMat);
-            leg1.position.set(-0.1, 0.3, 0);
-            const leg2 = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.6), legMat);
-            leg2.position.set(0.1, 0.3, 0);
-            comp.mesh.add(leg1); comp.mesh.add(leg2);
+            const l1 = new THREE.Mesh(legGeo, legMat); l1.position.set(-0.1, 0.2, 0);
+            const l2 = new THREE.Mesh(legGeo, legMat); l2.position.set(0.1, 0.2, 0);
+            this.group.add(l1); this.group.add(l2);
 
-            // Bulb
             const bulb = new THREE.Mesh(
-                new THREE.SphereGeometry(0.3),
+                new THREE.SphereGeometry(0.2),
                 new THREE.MeshStandardMaterial({ color: 0xff0000, transparent: true, opacity: 0.9 })
             );
-            bulb.position.set(0, 0.7, 0);
-            comp.mesh.add(bulb);
-
-            comp.addPin(-0.1, 0, 0, 'node', 'Anode');
-            comp.addPin(0.1, 0, 0, 'node', 'Cathode');
+            bulb.position.set(0, 0.5, 0);
+            this.group.add(bulb);
             
-            return comp;
+            // Selection box wrapper
+            const box = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.5), new THREE.MeshBasicMaterial({visible:false}));
+            box.position.y = 0.3;
+            box.userData = { parent: this };
+            this.group.add(box);
+            this.mesh = box; // For raycasting selection
         }
 
-
-        // --- INTERACTION LOGIC ---
-
-        // Raycasting setup
-        const raycaster = new THREE.Raycaster();
-        const mouse = new THREE.Vector2();
-
-        function getRayIntersection(e, objects) {
-            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-            raycaster.setFromCamera(mouse, camera);
-            return raycaster.intersectObjects(objects, true);
+        addPin(x, y, z, type, index) {
+            const pinColor = type === 'pwr' ? 0xff0000 : (type === 'gnd' ? 0x000000 : 0xdddd00);
+            const pinMesh = new THREE.Mesh(
+                new THREE.BoxGeometry(0.15, 0.15, 0.15),
+                new THREE.MeshStandardMaterial({ color: pinColor })
+            );
+            pinMesh.position.set(x, y, z);
+            pinMesh.userData = { isPin: true, component: this, type: type, id: index };
+            this.group.add(pinMesh);
+            this.pins.push(pinMesh);
+            sceneObjects.pins.push(pinMesh);
         }
 
-        window.addEventListener('mousemove', (e) => {
-            // Placement Logic (Ghost follows mouse)
-            if (state.mode === 'PLACING' && state.ghostMesh) {
-                const hits = getRayIntersection(e, [groundPlane]);
-                if (hits.length > 0) {
-                    const pos = hits[0].point;
-                    // Snap to grid (0.5 units)
-                    pos.x = Math.round(pos.x * 2) / 2;
-                    pos.z = Math.round(pos.z * 2) / 2;
-                    pos.y = 0.2; // slight offset
-                    state.ghostMesh.position.copy(pos);
-                }
+        setRotation(steps) {
+            this.rotationIndex = steps % 4;
+            this.group.rotation.y = -this.rotationIndex * (Math.PI / 2);
+        }
+
+        setPosition(pos) {
+            this.group.position.copy(pos);
+        }
+
+        highlight(bool) {
+            if (this.mesh.material && this.mesh.material.emissive) {
+                this.mesh.material.emissive.setHex(bool ? 0x444444 : 0x000000);
             }
-        });
+        }
+    }
 
-        window.addEventListener('click', (e) => {
-            if (e.target.closest('#ui-panel') || e.target.closest('#board-market')) return; // Ignore UI clicks
+    // --- INTERACTION LOGIC ---
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
 
-            if (state.mode === 'PLACING') {
-                finalizePlacement();
+    // Helper: Get point on Ground Plane
+    function getGroundIntersect(event) {
+        const rect = container.getBoundingClientRect();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(mouse, camera);
+        return raycaster.intersectObject(rayPlane)[0]; // Intersect invisible floor
+    }
+
+    // Helper: Get Objects (Components/Pins)
+    function getObjectIntersect(event) {
+        const rect = container.getBoundingClientRect();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(mouse, camera);
+        
+        // Pins have priority
+        const pinHit = raycaster.intersectObjects(sceneObjects.pins)[0];
+        if (pinHit) return pinHit;
+
+        // Then Components (checking the main mesh inside groups)
+        const meshes = sceneObjects.components.map(c => c.mesh);
+        const compHit = raycaster.intersectObjects(meshes)[0];
+        return compHit;
+    }
+
+    // 1. MOUSE MOVE (Ghosting & Coords)
+    container.addEventListener('mousemove', (e) => {
+        const hit = getGroundIntersect(e);
+        if (hit) {
+            const x = Math.round(hit.point.x / config.snap) * config.snap;
+            const z = Math.round(hit.point.z / config.snap) * config.snap;
+            document.getElementById('mouse-coords').innerText = `X: ${x.toFixed(1)} Z: ${z.toFixed(1)}`;
+
+            // Move Ghost
+            if (state.mode === 'PLACING' && state.ghost) {
+                state.ghost.position.set(x, 0, z);
+            }
+        }
+    });
+
+    // 2. MOUSE CLICK (Place / Select)
+    container.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return; // Only Left Click
+
+        // A. PLACING MODE
+        if (state.mode === 'PLACING') {
+            const hit = getGroundIntersect(e);
+            if (hit) {
+                const x = Math.round(hit.point.x / config.snap) * config.snap;
+                const z = Math.round(hit.point.z / config.snap) * config.snap;
+                
+                // Create Real Component
+                const comp = new LabComponent(state.placingType, `Comp_${sceneObjects.components.length+1}`);
+                comp.setRotation(state.rotation);
+                comp.setPosition(new THREE.Vector3(x, 0, z));
+                scene.add(comp.group);
+                sceneObjects.components.push(comp);
+                
+                // Keep placing? (Uncomment to allow multiple placements)
+                // return; 
+                
+                // End placement
+                setMode('SELECT');
+                setStatus(`Placed ${comp.name}.`);
+            }
+            return;
+        }
+
+        // B. SELECT/WIRE MODE
+        const hit = getObjectIntersect(e);
+        
+        if (hit) {
+            // Did we click a PIN?
+            if (hit.object.userData.isPin) {
+                handlePinClick(hit.object);
                 return;
             }
+            
+            // Did we click a COMPONENT?
+            if (hit.object.userData.parent && state.mode === 'SELECT') {
+                selectComponent(hit.object.userData.parent);
+            }
+        } else {
+            // Clicked void -> Deselect
+            selectComponent(null);
+        }
+    });
 
-            // Normal Interaction (Wire/Select)
-            const allPins = [];
-            components.forEach(c => allPins.push(...c.pins));
-            const hits = getRayIntersection(e, allPins);
+    // --- LOGIC FUNCTIONS ---
 
-            if (hits.length > 0) {
-                const pin = hits[0].object;
-                handlePinClick(pin);
+    function handlePinClick(pinMesh) {
+        if (state.mode !== 'WIRE') return;
+
+        if (!state.wireStart) {
+            state.wireStart = pinMesh;
+            pinMesh.material.emissive.setHex(0xffff00);
+            setStatus("Select Target Pin...");
+        } else {
+            if (state.wireStart === pinMesh) return; // Same pin
+            createWire(state.wireStart, pinMesh);
+            state.wireStart.material.emissive.setHex(0x000000); // Reset
+            state.wireStart = null;
+            setStatus("Wire Connected.");
+        }
+    }
+
+    function createWire(p1, p2) {
+        const v1 = new THREE.Vector3();
+        const v2 = new THREE.Vector3();
+        p1.getWorldPosition(v1);
+        p2.getWorldPosition(v2);
+
+        // Bezier Curve
+        const dist = v1.distanceTo(v2);
+        const mid = v1.clone().add(v2).multiplyScalar(0.5);
+        mid.y += dist * 0.5; // Arc height
+
+        const curve = new THREE.QuadraticBezierCurve3(v1, mid, v2);
+        const geo = new THREE.TubeGeometry(curve, 20, 0.04, 8, false);
+        const mat = new THREE.MeshStandardMaterial({ color: state.wireColor });
+        const mesh = new THREE.Mesh(geo, mat);
+        
+        scene.add(mesh);
+        sceneObjects.wires.push({ mesh, start: p1, end: p2 });
+    }
+
+    function selectComponent(comp) {
+        // Unhighlight old
+        if (state.selection) state.selection.highlight(false);
+        
+        state.selection = comp;
+        
+        const propPanel = document.getElementById('prop-content');
+        const emptyMsg = document.getElementById('prop-empty');
+
+        if (comp) {
+            comp.highlight(true);
+            propPanel.style.display = 'block';
+            emptyMsg.style.display = 'none';
+            
+            document.getElementById('prop-name').value = comp.name;
+            document.getElementById('prop-type').innerText = comp.type.toUpperCase();
+            document.getElementById('prop-pos').innerText = `${comp.group.position.x}, ${comp.group.position.z}`;
+        } else {
+            propPanel.style.display = 'none';
+            emptyMsg.style.display = 'block';
+        }
+    }
+
+    // --- KEYBOARD CONTROLS ---
+    window.addEventListener('keydown', (e) => {
+        // Rotate (R)
+        if (e.key.toLowerCase() === 'r') {
+            state.rotation = (state.rotation + 1) % 4;
+            // If placing, rotate ghost
+            if (state.mode === 'PLACING' && state.ghost) {
+                state.ghost.rotation.y = -state.rotation * (Math.PI / 2);
+            }
+            // If selected, rotate component
+            if (state.mode === 'SELECT' && state.selection) {
+                state.selection.setRotation(state.rotation);
+            }
+        }
+
+        // Delete (Del/Backspace)
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+            window.deleteSelected();
+        }
+
+        // Escape to cancel placement
+        if (e.key === 'Escape') {
+            setMode('SELECT');
+        }
+    });
+
+    // --- EXPORTED UI FUNCTIONS ---
+    
+    window.setMode = function(mode) {
+        state.mode = mode;
+        
+        // Reset specific states
+        if (state.ghost) { scene.remove(state.ghost); state.ghost = null; }
+        state.wireStart = null;
+        if(state.selection) { state.selection.highlight(false); state.selection = null; }
+
+        // UI Updates
+        document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+        if (mode === 'SELECT') document.getElementById('tool-select').classList.add('active');
+        if (mode === 'WIRE') document.getElementById('tool-wire').classList.add('active');
+        
+        // Hint Text
+        const hint = document.getElementById('controls-hint');
+        if (mode === 'PLACING') hint.classList.add('visible');
+        else hint.classList.remove('visible');
+
+        setStatus(`Mode: ${mode}`);
+    };
+
+    window.startPlacement = function(type) {
+        window.setMode('PLACING');
+        state.placingType = type;
+        state.rotation = 0;
+
+        // Create Ghost Visual
+        const tempComp = new LabComponent(type, 'ghost');
+        state.ghost = tempComp.group;
+        
+        // Make Transparent
+        state.ghost.traverse(c => {
+            if(c.isMesh) {
+                c.material = c.material.clone();
+                c.material.transparent = true;
+                c.material.opacity = 0.5;
             }
         });
+        scene.add(state.ghost);
+    };
 
-        // --- CORE FUNCTIONS ---
-
-        // 1. Placement System
-        window.startPlacement = function(type) {
-            state.mode = 'PLACING';
-            state.placingType = type;
+    window.deleteSelected = function() {
+        if (state.selection) {
+            const comp = state.selection;
             
-            // Close modal
-            document.getElementById('board-market').style.display = 'none';
-            document.getElementById('status-bar').innerText = "Placement Mode: Click grid to place.";
-
-            // Create Ghost
-            if (state.ghostMesh) scene.remove(state.ghostMesh);
+            // Remove from Scene
+            scene.remove(comp.group);
             
-            let tempComp;
-            if (type === 'breadboard') tempComp = createBreadboard();
-            else if (type === 'led') tempComp = createLED();
-            else tempComp = createBoard(type); // It's a board
-
-            state.ghostMesh = tempComp.mesh.clone();
-            
-            // Make ghost transparent
-            state.ghostMesh.traverse((child) => {
-                if (child.isMesh) {
-                    child.material = child.material.clone();
-                    child.material.transparent = true;
-                    child.material.opacity = 0.5;
-                }
+            // Clean up pins from raycast list
+            comp.pins.forEach(p => {
+                const idx = sceneObjects.pins.indexOf(p);
+                if (idx > -1) sceneObjects.pins.splice(idx, 1);
             });
-            scene.add(state.ghostMesh);
-        };
 
-        function finalizePlacement() {
-            if (!state.ghostMesh) return;
-            
-            const pos = state.ghostMesh.position.clone();
-            scene.remove(state.ghostMesh);
-            state.ghostMesh = null;
+            // Remove from component list
+            const cIdx = sceneObjects.components.indexOf(comp);
+            if (cIdx > -1) sceneObjects.components.splice(cIdx, 1);
 
-            // Instantiate real component
-            let realComp;
-            if (state.placingType === 'breadboard') realComp = createBreadboard();
-            else if (state.placingType === 'led') realComp = createLED();
-            else realComp = createBoard(state.placingType);
-
-            realComp.addToScene(pos);
-            
-            state.mode = 'SELECT';
-            state.placingType = null;
-            document.getElementById('status-bar').innerText = "Ready.";
-            highlightButton('mode-select');
+            state.selection = null;
+            document.getElementById('prop-content').style.display = 'none';
+            document.getElementById('prop-empty').style.display = 'block';
+            setStatus("Component Deleted.");
         }
+    };
 
-        // 2. Wiring System
-        function handlePinClick(pin) {
-            if (state.mode !== 'WIRE') return;
+    window.setWireColor = function(hex, el) {
+        state.wireColor = hex;
+        document.querySelectorAll('.color-swatch').forEach(d => d.classList.remove('active'));
+        el.classList.add('active');
+    };
 
-            if (!state.selectedPin) {
-                // Select first pin
-                state.selectedPin = pin;
-                pin.material.emissive.setHex(0xffff00); // Glow
-                document.getElementById('status-bar').innerText = "Wire Start Selected. Click Target Pin.";
-            } else {
-                // Connect
-                if (state.selectedPin === pin) return; // Can't wire to self
-                createWire(state.selectedPin, pin, state.wireColor);
-                
-                // Reset
-                state.selectedPin.material.emissive.setHex(0x000000);
-                state.selectedPin = null;
-                document.getElementById('status-bar').innerText = "Wire Connected!";
-            }
+    window.toggleSim = function() {
+        const btnRun = document.getElementById('btn-run');
+        const btnStop = document.getElementById('btn-stop');
+        
+        if (btnRun.style.display !== 'none') {
+            // START
+            btnRun.style.display = 'none';
+            btnStop.style.display = 'flex';
+            setStatus("Simulation Running...");
+            // Logic hook here
+        } else {
+            // STOP
+            btnRun.style.display = 'flex';
+            btnStop.style.display = 'none';
+            setStatus("Simulation Stopped.");
         }
+    };
 
-        function createWire(pinA, pinB, colorHex) {
-            const start = new THREE.Vector3();
-            const end = new THREE.Vector3();
-            pinA.getWorldPosition(start);
-            pinB.getWorldPosition(end);
+    function setStatus(msg) {
+        document.getElementById('status-msg').innerText = msg;
+    }
 
-            // Curve
-            const height = start.distanceTo(end) * 0.5 + 0.5;
-            const mid = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
-            mid.y += height;
+    // --- ANIMATION LOOP ---
+    function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+    }
+    animate();
 
-            const curve = new THREE.QuadraticBezierCurve3(start, mid, end);
-            const tubeGeo = new THREE.TubeGeometry(curve, 20, 0.05, 8, false);
-            const mat = new THREE.MeshStandardMaterial({ color: colorHex });
-            const wireMesh = new THREE.Mesh(tubeGeo, mat);
-            
-            scene.add(wireMesh);
-            wires.push({ mesh: wireMesh, p1: pinA, p2: pinB });
-        }
+    // Window Resize
+    window.addEventListener('resize', () => {
+        const w = container.clientWidth;
+        const h = container.clientHeight;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+    });
 
-
-        // --- UI BINDINGS ---
-        document.getElementById('btn-open-market').onclick = () => {
-            document.getElementById('board-market').style.display = 'block';
-        };
-        document.getElementById('close-market').onclick = () => {
-            document.getElementById('board-market').style.display = 'none';
-        };
-        document.getElementById('btn-add-breadboard').onclick = () => startPlacement('breadboard');
-        document.getElementById('btn-add-led').onclick = () => startPlacement('led');
-
-        document.getElementById('mode-wire').onclick = () => {
-            state.mode = 'WIRE';
-            highlightButton('mode-wire');
-            document.getElementById('status-bar').innerText = "Mode: WIRE. Select wire color and connect pins.";
-        };
-        document.getElementById('mode-select').onclick = () => {
-            state.mode = 'SELECT';
-            if (state.selectedPin) state.selectedPin.material.emissive.setHex(0x000000);
-            state.selectedPin = null;
-            highlightButton('mode-select');
-            document.getElementById('status-bar').innerText = "Mode: SELECT/DRAG.";
-        };
-
-        // Color Picker
-        document.querySelectorAll('.color-opt').forEach(el => {
-            el.addEventListener('click', (e) => {
-                document.querySelectorAll('.color-opt').forEach(x => x.classList.remove('selected'));
-                e.target.classList.add('selected');
-                state.wireColor = parseInt(e.target.dataset.hex);
-            });
-        });
-
-        function highlightButton(id) {
-            document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        }
-
-        // --- ANIMATION ---
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
-        }
-        animate();
-
-        // Handle resize
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-    </script>
+</script>
 </body>
 </html>
