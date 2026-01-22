@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vinsan Omni-Lab Pro v5.0 (Wokwi Clone)</title>
+    <title>Vinsan Omni-Lab Pro v6.0</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -17,107 +17,178 @@
             --border: #333;
             --success: #4caf50;
             --danger: #f44336;
+            --warning: #ff9800;
         }
 
         body { margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; background: var(--bg-dark); color: var(--text-main); user-select: none; }
         
+        /* LAYOUT GRID */
         #app-container {
             display: grid;
             grid-template-rows: 50px 1fr 30px;
-            grid-template-columns: 260px 1fr 280px;
+            grid-template-columns: 260px 1fr 300px;
             height: 100vh; width: 100vw;
         }
 
-        /* HEADER */
+        /* 1. TOP HEADER (Toolbar) */
         header {
             grid-column: 1 / -1;
-            background: var(--bg-header); border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; padding: 0 20px; justify-content: space-between; z-index: 10;
+            background: var(--bg-header);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; padding: 0 20px;
+            justify-content: space-between;
+            z-index: 10;
         }
-        .brand { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--accent); font-size: 18px; display:flex; align-items:center; gap:10px; }
+        .brand { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--accent); font-size: 18px; letter-spacing: 1px; display:flex; align-items:center; gap:10px; }
         .toolbar-center { display: flex; gap: 10px; background: #1a1a1a; padding: 4px; border-radius: 6px; border: 1px solid var(--border); }
         .tool-btn {
-            background: transparent; border: none; color: var(--text-dim); padding: 6px 12px;
-            border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600;
-            display: flex; align-items: center; gap: 6px; transition: 0.2s;
+            background: transparent; border: none; color: var(--text-dim);
+            padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600;
+            transition: 0.2s; display: flex; align-items: center; gap: 6px;
         }
         .tool-btn:hover { background: #333; color: white; }
         .tool-btn.active { background: var(--accent); color: white; }
         
         .action-group { display: flex; gap: 8px; margin-right: 20px; }
-        .icon-btn { background: #333; border: 1px solid var(--border); color: #ccc; width: 32px; height: 32px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .icon-btn { background: #333; border: 1px solid var(--border); color: #ccc; width: 32px; height: 32px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; }
         .icon-btn:hover { background: #444; color: white; }
+
         .sim-controls { display: flex; gap: 10px; }
         .sim-btn {
             background: var(--success); color: white; border: none; padding: 6px 16px; 
-            border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 5px;
+            border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px;
+            display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
+        .sim-btn:hover { filter: brightness(1.1); }
         .sim-btn.stop { background: var(--danger); display: none; }
 
-        /* LIBRARY */
+        /* 2. LEFT SIDEBAR (Library) */
         #library-panel {
-            grid-row: 2; grid-column: 1; background: var(--bg-panel); border-right: 1px solid var(--border);
-            overflow-y: auto; display: flex; flex-direction: column;
+            grid-row: 2; grid-column: 1;
+            background: var(--bg-panel); border-right: 1px solid var(--border);
+            overflow-y: auto; padding: 0;
+            display: flex; flex-direction: column;
         }
-        .panel-header { padding: 15px; font-size: 11px; font-weight: bold; color: var(--text-dim); background: #222; border-bottom: 1px solid var(--border); text-transform: uppercase; }
-        .category-title { padding: 12px 15px; font-size: 13px; font-weight: 600; background: #2a2a2a; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; justify-content: space-between; }
+        .panel-header {
+            padding: 15px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; 
+            color: var(--text-dim); font-weight: bold; border-bottom: 1px solid var(--border);
+            background: #222; position: sticky; top: 0;
+        }
+        .category-title {
+            padding: 12px 15px; font-size: 13px; font-weight: 600; cursor: pointer;
+            background: #2a2a2a; border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; color: #ccc;
+        }
+        .category-title:hover { background: #333; color: white; }
         .category-content { display: grid; gap: 8px; padding: 10px; }
         .part-card {
-            background: #333; padding: 8px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; display: flex; align-items: center; gap: 10px; transition: 0.2s;
+            background: #333; padding: 8px; border-radius: 4px; cursor: pointer;
+            border: 1px solid transparent; transition: 0.2s; display: flex; align-items: center; gap: 10px;
         }
         .part-card:hover { border-color: var(--accent); background: #3a3a3a; transform: translateX(2px); }
         .part-icon { width: 32px; height: 32px; background: #222; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
         .part-info h4 { margin: 0; font-size: 13px; color: white; }
         .part-info p { margin: 2px 0 0; font-size: 10px; color: #aaa; }
 
-        /* CANVAS */
-        #canvas-wrapper { grid-row: 2; grid-column: 2; position: relative; overflow: hidden; background: #101010; }
+        /* 3. CENTER (Canvas) */
+        #canvas-wrapper {
+            grid-row: 2; grid-column: 2;
+            position: relative; overflow: hidden; background: #101010;
+        }
         #canvas-container { width: 100%; height: 100%; outline: none; }
 
-        /* RIGHT PANEL (PROPS + SERIAL) */
+        /* 4. RIGHT SIDEBAR (Properties + Serial) */
         #properties-panel {
-            grid-row: 2; grid-column: 3; background: var(--bg-panel); border-left: 1px solid var(--border);
-            display: flex; flex-direction: column;
+            grid-row: 2; grid-column: 3;
+            background: var(--bg-panel); border-left: 1px solid var(--border);
+            display: flex; flex-direction: column; overflow: hidden;
         }
-        #prop-content { padding: 20px; flex: 1; overflow-y: auto; }
+        #prop-content { padding: 20px; overflow-y: auto; flex: 1; }
+        
         .prop-group { margin-bottom: 20px; }
         .prop-label { display: block; font-size: 11px; color: var(--text-dim); margin-bottom: 5px; }
-        .prop-value { width: 100%; background: #111; border: 1px solid var(--border); color: white; padding: 8px; border-radius: 4px; font-family: 'JetBrains Mono'; font-size: 12px; box-sizing: border-box; }
+        .prop-value { 
+            width: 100%; background: #111; border: 1px solid var(--border); color: white;
+            padding: 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 12px; box-sizing: border-box;
+        }
         .color-palette { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px; }
-        .color-swatch { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+        .color-swatch { 
+            width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent;
+            transition: transform 0.2s; 
+        }
         .color-swatch.active { border-color: white; transform: scale(1.1); box-shadow: 0 0 8px rgba(255,255,255,0.2); }
 
         /* SERIAL MONITOR */
-        #serial-monitor {
-            height: 200px; border-top: 1px solid var(--border); background: #111; display: flex; flex-direction: column;
+        #serial-section {
+            height: 30%; min-height: 150px; border-top: 1px solid var(--border);
+            display: flex; flex-direction: column; background: #151515;
         }
-        .serial-header { padding: 8px 15px; background: #222; font-size: 12px; font-weight: bold; color: var(--text-dim); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
-        #serial-output { flex: 1; padding: 10px; font-family: 'JetBrains Mono', monospace; font-size: 12px; overflow-y: auto; color: #4caf50; white-space: pre-wrap; }
+        .serial-header {
+            padding: 8px 15px; background: #222; border-bottom: 1px solid #333;
+            font-size: 11px; font-weight: bold; color: #888; display: flex; justify-content: space-between;
+        }
+        .serial-actions span { cursor: pointer; margin-left: 10px; color: var(--accent); }
+        .serial-actions span:hover { color: white; }
+        #serial-output {
+            flex: 1; padding: 10px; font-family: 'JetBrains Mono', monospace; font-size: 12px;
+            color: #4caf50; overflow-y: auto; white-space: pre-wrap; word-break: break-all;
+        }
 
-        /* CODE EDITOR */
+        /* CODE EDITOR (Overlay) */
         #code-editor {
-            position: absolute; bottom: 0; left: 0; right: 0; height: 0; background: #1e1e1e; border-top: 1px solid var(--border);
-            transition: height 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; flex-direction: column; z-index: 20;
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 0; background: #1e1e1e; border-top: 1px solid var(--border);
+            transition: height 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex; flex-direction: column; overflow: hidden;
+            z-index: 20;
         }
         #code-editor.open { height: 350px; }
-        .editor-header { background: #252525; padding: 0 15px; height: 35px; display: flex; align-items: center; justify-content: space-between; font-size: 12px; border-bottom: 1px solid #333; }
-        .editor-area { flex: 1; background: #151515; color: #d4d4d4; border: none; padding: 15px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.5; resize: none; outline: none; }
+        .editor-header {
+            background: #252525; padding: 0 15px; height: 35px; display: flex; align-items: center; justify-content: space-between;
+            font-size: 12px; border-bottom: 1px solid #333;
+        }
+        .editor-tabs { display: flex; gap: 2px; height: 100%; }
+        .tab { background: #1e1e1e; padding: 0 15px; display: flex; align-items: center; border-top: 2px solid var(--accent); color: white; cursor: pointer; font-family: 'Inter'; }
+        .editor-area {
+            flex: 1; background: #151515; color: #d4d4d4; border: none; padding: 15px;
+            font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.5; resize: none; outline: none;
+        }
 
-        /* FOOTER */
-        footer { grid-row: 3; grid-column: 1 / -1; background: var(--accent); color: white; display: flex; align-items: center; padding: 0 15px; font-size: 12px; font-weight: 500; justify-content: space-between; z-index: 30; }
-        
+        /* 5. STATUS BAR */
+        footer {
+            grid-row: 3; grid-column: 1 / -1;
+            background: var(--accent); color: white;
+            display: flex; align-items: center; padding: 0 15px; font-size: 12px; font-weight: 500;
+            justify-content: space-between; z-index: 30;
+        }
+        .coords { font-family: 'JetBrains Mono', monospace; opacity: 0.8; }
+
+        /* OVERLAYS & TOASTS */
         #controls-hint {
             position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.8); padding: 8px 16px; border-radius: 20px; font-size: 12px; pointer-events: none; opacity: 0; transition: opacity 0.3s; border: 1px solid #444; color: white;
+            background: rgba(0,0,0,0.8); padding: 8px 16px; border-radius: 20px;
+            font-size: 12px; pointer-events: none; opacity: 0; transition: opacity 0.3s;
+            border: 1px solid #444; color: white;
         }
         #controls-hint.visible { opacity: 1; }
 
-        /* MODAL */
         #modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 100;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 100;
         }
-        .modal { background: #1e1e1e; padding: 25px; border-radius: 8px; border: 1px solid #444; width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .modal {
+            background: #1e1e1e; padding: 25px; border-radius: 8px; border: 1px solid #444;
+            width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .modal h2 { margin-top: 0; color: var(--accent); }
+        .modal ul { line-height: 1.6; font-size: 14px; padding-left: 20px; color: #ccc; }
         .btn-modal { background: var(--accent); border: none; color: white; padding: 8px 16px; border-radius: 4px; cursor: pointer; float: right; }
+
+        /* SCROLLBARS */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1a1a1a; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
     </style>
 </head>
 <body>
@@ -126,21 +197,27 @@
     <header>
         <div class="brand">
             <span style="font-size:20px;">⚡</span>
-            <div>VINSAN LAB <span style="font-size:10px; color:#888; font-weight:400; display:block; line-height:1;">OMNI-PRO v5.0</span></div>
+            <div>VINSAN LAB <span style="font-size:10px; color:#888; font-weight:400; display:block; line-height:1;">OMNI-PRO v6.0</span></div>
         </div>
         
         <div class="toolbar-center">
-            <button class="tool-btn active" id="tool-select" onclick="setMode('SELECT')"><span>↖</span> Select</button>
-            <button class="tool-btn" id="tool-wire" onclick="setMode('WIRE')"><span>∿</span> Wire</button>
-            <button class="tool-btn" id="tool-delete" onclick="deleteSelected()"><span>🗑</span> Delete</button>
+            <button class="tool-btn active" id="tool-select" onclick="setMode('SELECT')" title="Select Tool (V)">
+                <span>↖</span> Select
+            </button>
+            <button class="tool-btn" id="tool-wire" onclick="setMode('WIRE')" title="Wire Tool (W)">
+                <span>∿</span> Wire
+            </button>
+            <button class="tool-btn" id="tool-delete" onclick="deleteSelected()" title="Delete Selected (Del)">
+                <span>🗑</span> Delete
+            </button>
         </div>
 
         <div style="display:flex; align-items:center;">
             <div class="action-group">
-                <button class="icon-btn" onclick="toggleCode()" title="Code Editor (C)"><span>{ }</span></button>
-                <button class="icon-btn" onclick="saveCircuit()" title="Save"><span>💾</span></button>
-                <button class="icon-btn" onclick="document.getElementById('file-input').click()" title="Load"><span>📂</span></button>
-                <button class="icon-btn" onclick="clearBoard()" title="Clear"><span>✕</span></button>
+                <button class="icon-btn" onclick="toggleCode()" title="Toggle Code Editor (C)"><span>{ }</span></button>
+                <button class="icon-btn" onclick="saveCircuit()" title="Save Circuit"><span>💾</span></button>
+                <button class="icon-btn" onclick="document.getElementById('file-input').click()" title="Load Circuit"><span>📂</span></button>
+                <button class="icon-btn" onclick="clearBoard()" title="Clear Board"><span>✕</span></button>
                 <button class="icon-btn" onclick="toggleHelp()" title="Help"><span>?</span></button>
                 <input type="file" id="file-input" style="display:none" onchange="loadCircuit(this)">
             </div>
@@ -165,25 +242,41 @@
                 <div class="part-icon" style="color:#006688; border: 1px solid #006688;">M</div>
                 <div class="part-info"><h4>Arduino Mega</h4><p>ATmega2560</p></div>
             </div>
+            <div class="part-card" onclick="startPlacement('esp32')">
+                <div class="part-icon" style="color:#888; border:1px solid #555;">E</div>
+                <div class="part-info"><h4>ESP-32</h4><p>WiFi / BT Module</p></div>
+            </div>
         </div>
 
-        <div class="category-title" onclick="toggleCat(this)">BASIC <span>▼</span></div>
+        <div class="category-title" onclick="toggleCat(this)">ACTUATORS <span>▼</span></div>
         <div class="category-content">
-            <div class="part-card" onclick="startPlacement('breadboard')">
-                <div class="part-icon" style="color:#eee; background:#333;">▦</div>
-                <div class="part-info"><h4>Breadboard</h4><p>Full Size</p></div>
-            </div>
-            <div class="part-card" onclick="startPlacement('led')">
+             <div class="part-card" onclick="startPlacement('led')">
                 <div class="part-icon" style="color:#f44336;">💡</div>
-                <div class="part-info"><h4>LED</h4><p>Red, Green, Blue</p></div>
+                <div class="part-info"><h4>LED (Red)</h4><p>Light Emitting Diode</p></div>
             </div>
+             <div class="part-card" onclick="startPlacement('servo')">
+                <div class="part-icon" style="color:#e6c99c;">┌─┐</div>
+                <div class="part-info"><h4>Servo Motor</h4><p>Standard Servo</p></div>
+            </div>
+        </div>
+
+        <div class="category-title" onclick="toggleCat(this)">SENSORS / INPUT <span>▼</span></div>
+        <div class="category-content">
             <div class="part-card" onclick="startPlacement('pushbutton')">
                 <div class="part-icon" style="color:#555;">⚫</div>
                 <div class="part-info"><h4>Push Button</h4><p>Tactile Switch</p></div>
             </div>
-            <div class="part-card" onclick="startPlacement('servo')">
-                <div class="part-icon" style="color:#e6c99c;">┌─┐</div>
-                <div class="part-info"><h4>Servo Motor</h4><p>Standard</p></div>
+        </div>
+        
+        <div class="category-title" onclick="toggleCat(this)">INFRASTRUCTURE <span>▼</span></div>
+        <div class="category-content">
+            <div class="part-card" onclick="startPlacement('breadboard')">
+                <div class="part-icon" style="color:#eee; background:#333;">▦</div>
+                <div class="part-info"><h4>Breadboard</h4><p>830 Tie-Points</p></div>
+            </div>
+             <div class="part-card" onclick="startPlacement('resistor')">
+                <div class="part-icon" style="color:#e6c99c;">〰</div>
+                <div class="part-info"><h4>Resistor</h4><p>1k Ohm</p></div>
             </div>
         </div>
     </div>
@@ -194,13 +287,14 @@
         
         <div id="code-editor">
             <div class="editor-header">
-                <div class="editor-tabs"><div class="tab">sketch.ino</div></div>
+                <div class="editor-tabs">
+                    <div class="tab">sketch.ino</div>
+                </div>
                 <div style="cursor:pointer" onclick="toggleCode()">▼ Hide Editor</div>
             </div>
             <textarea class="editor-area" id="editor-text" spellcheck="false">
-// Vinsan Omni-Lab v5.0
-// Write your simulation code here. 
-// Basic Arduino Syntax is supported.
+// Vinsan Omni-Lab v6.0
+// Simulating Standard Arduino Syntax
 
 int led = 13;
 
@@ -226,9 +320,11 @@ void loop() {
     <div id="properties-panel">
         <div id="prop-content">
             <div class="panel-header" style="margin: -20px -20px 20px -20px; padding: 15px;">Properties</div>
-            <div id="prop-empty" style="text-align: center; color: #666; margin-top: 20px;">
-                Select a component
+            
+            <div id="prop-empty" style="text-align: center; color: #666; margin-top: 50px;">
+                Select a component to view properties.
             </div>
+
             <div id="prop-fields" style="display: none;">
                 <div class="prop-group">
                     <label class="prop-label">Name</label>
@@ -236,24 +332,32 @@ void loop() {
                 </div>
                 <div class="prop-group">
                     <label class="prop-label">Type</label>
-                    <div class="prop-value" id="prop-type" style="border:none; padding:0; color:#accent;"></div>
+                    <div class="prop-value" id="prop-type" style="border:none; background:none; padding:0; color:#accent;">Arduino Uno</div>
+                </div>
+                <div class="prop-group">
+                    <label class="prop-label">Coordinates</label>
+                    <div class="prop-value" id="prop-pos">0.0, 0.0</div>
                 </div>
             </div>
 
             <div class="panel-header" style="margin: 20px -20px 10px -20px; padding: 10px 15px;">Wire Color</div>
-            <div class="color-palette">
+            <div class="color-palette" id="wire-palette">
                 <div class="color-swatch active" style="background:#f44336;" onclick="setWireColor(0xf44336, this)"></div>
                 <div class="color-swatch" style="background:#111; border-color:#555;" onclick="setWireColor(0x111111, this)"></div>
                 <div class="color-swatch" style="background:#4caf50;" onclick="setWireColor(0x4caf50, this)"></div>
                 <div class="color-swatch" style="background:#2196f3;" onclick="setWireColor(0x2196f3, this)"></div>
                 <div class="color-swatch" style="background:#ffeb3b;" onclick="setWireColor(0xffeb3b, this)"></div>
+                <div class="color-swatch" style="background:#ff9800;" onclick="setWireColor(0xff9800, this)"></div>
+                <div class="color-swatch" style="background:#fff;" onclick="setWireColor(0xffffff, this)"></div>
             </div>
         </div>
 
-        <div id="serial-monitor">
+        <div id="serial-section">
             <div class="serial-header">
                 <span>SERIAL MONITOR</span>
-                <span style="cursor:pointer" onclick="document.getElementById('serial-output').innerText=''">CLEAR</span>
+                <div class="serial-actions">
+                    <span onclick="document.getElementById('serial-output').innerText=''">CLEAR</span>
+                </div>
             </div>
             <div id="serial-output"></div>
         </div>
@@ -267,61 +371,99 @@ void loop() {
 
 <div id="modal-overlay">
     <div class="modal">
-        <h2>Help & Shortcuts</h2>
+        <h2>Keyboard Shortcuts</h2>
         <ul>
-            <li><b>Click</b> : Select / Place / Wire</li>
+            <li><b>Left Click</b> : Select / Place / Wire</li>
             <li><b>Right Click</b> : Rotate Component</li>
-            <li><b>Esc</b> : Cancel / Unselect</li>
-            <li><b>Delete</b> : Delete Selection</li>
+            <li><b>Esc</b> : Cancel Placement / Unselect</li>
+            <li><b>Delete / Backspace</b> : Delete Selection</li>
+            <li><b>R</b> : Rotate Component</li>
             <li><b>C</b> : Toggle Code Editor</li>
-            <li><b>Note</b>: Code is simulated using a JS interpreter. Standard Arduino functions (digitalWrite, delay, Serial) are supported.</li>
         </ul>
         <button class="btn-modal" onclick="toggleHelp()">Close</button>
     </div>
 </div>
 
 <script type="importmap">
-    { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
 </script>
 
 <script type="module">
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-    // --- CONFIG ---
-    const config = { gridSize: 60, snap: 0.5 };
-    const state = { mode: 'SELECT', placingType: null, ghost: null, selection: null, wireStart: null, wireColor: 0xf44336, rotation: 0, isSimulating: false };
-    
-    // Scene Data
-    const sceneObjects = { components: [], wires: [], pins: [] };
+    // --- GLOBAL CONFIG & STATE ---
+    const config = {
+        gridSize: 60,
+        gridStep: 1, 
+        snap: 0.5 
+    };
 
-    // --- THREE.JS SETUP ---
+    const state = {
+        mode: 'SELECT', // SELECT, WIRE, PLACING
+        placingType: null,
+        ghost: null,
+        selection: null,
+        wireStart: null,
+        wireColor: 0xf44336,
+        rotation: 0,
+        isSimulating: false,
+        simInterval: null
+    };
+
+    // Store logical data structure for serialization & simulation
+    const sceneObjects = {
+        components: [],
+        wires: [],
+        pins: [] // Flat list for raycasting
+    };
+
+    // --- THREE.JS SCENE SETUP ---
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x101010);
-    
+    scene.background = new THREE.Color(0x151515);
+    scene.fog = new THREE.Fog(0x151515, 20, 80);
+
     const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-    camera.position.set(8, 10, 8);
-    
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    camera.position.set(8, 12, 8);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
 
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true; controls.maxPolarAngle = Math.PI/2 - 0.1;
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.1;
+    controls.maxPolarAngle = Math.PI / 2 - 0.1;
 
     // Lights
-    const ambLight = new THREE.AmbientLight(0xffffff, 0.5); scene.add(ambLight);
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1); dirLight.position.set(10, 20, 5);
-    dirLight.castShadow = true; scene.add(dirLight);
+    const ambLight = new THREE.AmbientLight(0xffffff, 0.6);
+    scene.add(ambLight);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+    dirLight.position.set(15, 25, 10);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
+    dirLight.shadow.bias = -0.0001;
+    scene.add(dirLight);
 
-    // Grid & Raycast Plane
-    scene.add(new THREE.GridHelper(60, 60, 0x333333, 0x1a1a1a));
-    const rayPlane = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshBasicMaterial({visible:false}));
-    rayPlane.rotation.x = -Math.PI/2; scene.add(rayPlane);
+    // Floor Grid
+    const gridHelper = new THREE.GridHelper(config.gridSize, config.gridSize, 0x444444, 0x222222);
+    scene.add(gridHelper);
 
-    // --- COMPONENT SYSTEM ---
+    // Invisible Raycast Plane
+    const rayPlane = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshBasicMaterial({ visible: false }));
+    rayPlane.rotation.x = -Math.PI / 2;
+    scene.add(rayPlane);
+
+    // --- COMPONENT CLASS ---
     class LabComponent {
         constructor(type, name, id = null) {
             this.type = type;
@@ -330,288 +472,488 @@ void loop() {
             this.group = new THREE.Group();
             this.pins = [];
             this.rotationIndex = 0;
-            this.internalState = { output: 0 }; // For simulation (0=LOW, 1=HIGH)
+            this.internalState = {}; // For simulation state (e.g. brightness, rotation)
+            
             this.buildVisuals();
         }
 
         buildVisuals() {
-            let pinsDef = [];
-            let color = 0x888;
+            let color = 0x888888;
             let w=1, h=0.2, d=1;
+            let pinsDef = [];
 
-            if (this.type === 'uno') {
-                color=0x0088aa; w=3; d=2.1;
-                // Simplified pinout for demo
-                pinsDef = [
-                    {x:1.3, z:-0.9, t:'5V'}, {x:1.1, z:-0.9, t:'GND'}, 
-                    {x:-1.3, z:0.9, t:'13'}, {x:-1.1, z:0.9, t:'12'}, {x:-0.9, z:0.9, t:'11'}
-                ];
-            } else if (this.type === 'mega') {
-                color=0x006688; w=4.5; d=2.1;
-                pinsDef = [{x:2, z:-0.9, t:'5V'}, {x:1.8, z:-0.9, t:'GND'}];
-            } else if (this.type === 'breadboard') {
-                color=0xffffff; w=5; d=3; 
-                pinsDef = [{x:-2, z:-1.3, t:'+'}, {x:-2, z:1.3, t:'-'}];
-            } else if (this.type === 'led') {
-                this.addLED(); pinsDef=[{x:-0.1, z:0, t:'A'}, {x:0.1, z:0, t:'C'}];
-            } else if (this.type === 'pushbutton') {
-                this.addButton(); pinsDef=[{x:-0.3, z:0, t:'1'}, {x:0.3, z:0, t:'2'}];
-            } else if (this.type === 'servo') {
-                this.addServo(); pinsDef=[{x:-0.3, z:0.4, t:'GND'}, {x:0, z:0.4, t:'VCC'}, {x:0.3, z:0.4, t:'SIG'}];
+            switch(this.type) {
+                case 'uno': 
+                    color = 0x0088aa; w=3; d=2.1; 
+                    pinsDef = [
+                        {x:1.3, z:-0.9, t:'5V'}, {x:1.1, z:-0.9, t:'GND'}, 
+                        {x:1.3, z:0.9, t:'GND'}, {x:-1.3, z:0.9, t:'13'},
+                        {x:-1.1, z:0.9, t:'12'}, {x:-0.9, z:0.9, t:'11'},
+                        {x:0.1, z:0.9, t:'A0'}
+                    ];
+                    break;
+                case 'mega':
+                    color = 0x006688; w=4.5; d=2.1;
+                    pinsDef = [{x:2, z:-0.9, t:'5V'}, {x:1.8, z:-0.9, t:'GND'}, {x:-2, z:0.9, t:'53'}];
+                    break;
+                case 'esp32':
+                    color = 0x111111; w=1.2; d=2;
+                    pinsDef = [{x:0.4, z:-0.8, t:'3V3'}, {x:0.4, z:0.8, t:'GND'}, {x:-0.4, z:0.8, t:'D2'}];
+                    break;
+                case 'breadboard':
+                    color = 0xffffff; w=5; d=3; h=0.2;
+                    pinsDef = [
+                        {x:-2, z:-1.3, t:'+'}, {x:2, z:-1.3, t:'-'},
+                        {x:-2, z:1.3, t:'+'}, {x:2, z:1.3, t:'-'}
+                    ];
+                    break;
+                case 'led':
+                    color = 0x333333; w=0.5; d=0.5; h=0.1;
+                    this.addLEDVisuals();
+                    pinsDef = [{x:-0.1, z:0, t:'A'}, {x:0.1, z:0, t:'C'}];
+                    break;
+                case 'resistor':
+                    w=0.8; d=0.2; h=0.2;
+                    this.addResistorVisuals();
+                    pinsDef = [{x:-0.4, z:0, t:'1'}, {x:0.4, z:0, t:'2'}];
+                    break;
+                 case 'pushbutton':
+                    w=0.6; d=0.6; h=0.3;
+                    this.addButtonVisuals();
+                    pinsDef = [{x:-0.3, z:0, t:'1'}, {x:0.3, z:0, t:'2'}];
+                    break;
+                case 'servo':
+                    w=1; d=0.5; h=0.5;
+                    this.addServoVisuals();
+                    pinsDef = [{x:-0.3, z:0.3, t:'GND'}, {x:0, z:0.3, t:'VCC'}, {x:0.3, z:0.3, t:'SIG'}];
+                    break;
+                default:
+                    pinsDef = [];
             }
 
-            // Create Body (if not custom)
-            if (!['led','pushbutton','servo'].includes(this.type)) {
-                const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({color:color}));
-                mesh.castShadow = true; mesh.receiveShadow = true;
-                mesh.userData = { parent: this };
-                this.mesh = mesh;
-                this.group.add(mesh);
+            // Generic PCB Body for chips/boards
+            if(!['led', 'resistor', 'pushbutton', 'servo'].includes(this.type)) {
+                const geo = new THREE.BoxGeometry(w, h, d);
+                const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.5 });
+                this.mesh = new THREE.Mesh(geo, mat);
+                this.mesh.castShadow = true; 
+                this.mesh.receiveShadow = true;
+                this.mesh.userData = { parent: this };
+                this.group.add(this.mesh);
             }
 
             // Create Pins
-            pinsDef.forEach((p, i) => this.addPin(p.x, (this.type==='led'||this.type==='servo'?0:h/2)+0.05, p.z, p.t, i));
+            pinsDef.forEach((p, i) => this.addPin(p.x, h/2 + 0.05, p.z, p.t, i));
         }
 
-        addPin(x, y, z, name, idx) {
-            const pin = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.12), new THREE.MeshStandardMaterial({color:0xdddd00}));
-            pin.position.set(x, y, z);
-            pin.userData = { isPin: true, componentId: this.id, pinName: name, pinIndex: idx };
-            this.group.add(pin);
-            this.pins.push(pin);
-            sceneObjects.pins.push(pin);
-        }
+        addLEDVisuals() {
+            const legGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.4);
+            const legMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.8 });
+            const l1 = new THREE.Mesh(legGeo, legMat); l1.position.set(-0.1, 0.2, 0);
+            const l2 = new THREE.Mesh(legGeo, legMat); l2.position.set(0.1, 0.2, 0);
+            this.group.add(l1); this.group.add(l2);
 
-        addLED() {
-            const legs = new THREE.Group();
-            const l1 = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.4), new THREE.MeshStandardMaterial({color:0xaaa})); l1.position.x=-0.1; l1.position.y=0.2;
-            const l2 = l1.clone(); l2.position.x=0.1;
-            legs.add(l1); legs.add(l2);
+            this.bulbMat = new THREE.MeshStandardMaterial({ color: 0xff0000, transparent: true, opacity: 0.8, roughness: 0.1 });
+            const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.2), this.bulbMat);
+            bulb.position.set(0, 0.5, 0);
+            this.group.add(bulb);
             
-            this.bulbMat = new THREE.MeshStandardMaterial({color:0xff0000, transparent:true, opacity:0.8});
-            const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.2), this.bulbMat); bulb.position.y=0.5;
-            legs.add(bulb); this.group.add(legs);
-            
-            // Hitbox
-            const box = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.7,0.5), new THREE.MeshBasicMaterial({visible:false}));
-            box.position.y=0.35; box.userData={parent:this};
-            this.group.add(box); this.mesh = box;
+            const box = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.8, 0.5), new THREE.MeshBasicMaterial({visible:false}));
+            box.position.y = 0.3;
+            box.userData = { parent: this };
+            this.group.add(box);
+            this.mesh = box;
         }
 
-        addButton() {
-            const base = new THREE.Mesh(new THREE.BoxGeometry(0.6,0.2,0.6), new THREE.MeshStandardMaterial({color:0x333}));
-            this.btnCap = new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,0.1), new THREE.MeshStandardMaterial({color:0x111}));
-            this.btnCap.position.y=0.15; base.add(this.btnCap);
-            base.userData={parent:this}; this.mesh=base; this.group.add(base);
+        addResistorVisuals() {
+             const geo = new THREE.CylinderGeometry(0.08, 0.08, 0.8);
+             geo.rotateZ(Math.PI/2);
+             const mat = new THREE.MeshStandardMaterial({ color: 0xe6c99c });
+             const body = new THREE.Mesh(geo, mat);
+             const b1 = new THREE.Mesh(new THREE.CylinderGeometry(0.085,0.085,0.1), new THREE.MeshBasicMaterial({color:0xaa0000}));
+             b1.rotation.z = Math.PI/2; b1.position.x = -0.15;
+             const b2 = new THREE.Mesh(new THREE.CylinderGeometry(0.085,0.085,0.1), new THREE.MeshBasicMaterial({color:0x000000}));
+             b2.rotation.z = Math.PI/2; b2.position.x = 0;
+             body.add(b1); body.add(b2);
+             body.position.y = 0.1;
+             this.group.add(body);
+             body.userData = { parent: this };
+             this.mesh = body;
+        }
+        
+        addButtonVisuals() {
+            const base = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.2, 0.6), new THREE.MeshStandardMaterial({color:0x333333}));
+            this.btnCap = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.1), new THREE.MeshStandardMaterial({color:0x111111}));
+            this.btnCap.position.y = 0.15;
+            base.add(this.btnCap);
+            this.group.add(base);
+            base.userData = { parent: this };
+            this.mesh = base;
         }
 
-        addServo() {
-            const body = new THREE.Mesh(new THREE.BoxGeometry(0.8,0.4,1.2), new THREE.MeshStandardMaterial({color:0x111}));
-            body.position.y=0.2;
-            this.servoArm = new THREE.Mesh(new THREE.BoxGeometry(0.2,0.1,1.6), new THREE.MeshStandardMaterial({color:0xffffff}));
-            this.servoArm.position.y=0.3;
+        addServoVisuals() {
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.4, 1.2), new THREE.MeshStandardMaterial({color:0x111}));
+            body.position.y = 0.2;
+            this.servoArm = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.1, 1.6), new THREE.MeshStandardMaterial({color:0xffffff}));
+            this.servoArm.position.y = 0.3;
             body.add(this.servoArm);
-            body.userData={parent:this}; this.mesh=body; this.group.add(body);
+            body.userData = { parent: this };
+            this.mesh = body;
+            this.group.add(body);
+        }
+
+        addPin(x, y, z, type, index) {
+            let pinColor = 0xdddd00;
+            if(type.includes('5V') || type.includes('3V3')) pinColor = 0xff0000;
+            if(type.includes('GND')) pinColor = 0x000000;
+
+            const pinMesh = new THREE.Mesh(
+                new THREE.BoxGeometry(0.12, 0.12, 0.12),
+                new THREE.MeshStandardMaterial({ color: pinColor })
+            );
+            pinMesh.position.set(x, y, z);
+            pinMesh.userData = { isPin: true, componentId: this.id, pinName: type, pinIndex: index };
+            this.group.add(pinMesh);
+            this.pins.push(pinMesh);
+            sceneObjects.pins.push(pinMesh);
         }
 
         setRotation(steps) {
             this.rotationIndex = steps % 4;
-            this.group.rotation.y = -this.rotationIndex * (Math.PI/2);
+            this.group.rotation.y = -this.rotationIndex * (Math.PI / 2);
         }
 
-        // Logic API
-        updateVisuals(voltage) {
-            if (this.type === 'led') {
-                if(voltage > 2) {
-                    this.bulbMat.emissive.setHex(0xff0000); this.bulbMat.emissiveIntensity = 2;
+        setPosition(pos) {
+            this.group.position.copy(pos);
+        }
+        
+        // --- SIMULATION UPDATE METHODS ---
+        updateVisuals(stateData) {
+            if(this.type === 'led') {
+                if(stateData.voltage > 2) {
+                    this.bulbMat.emissive.setHex(0xff0000);
+                    this.bulbMat.emissiveIntensity = 2;
                 } else {
-                    this.bulbMat.emissive.setHex(0x000000); this.bulbMat.emissiveIntensity = 0;
+                    this.bulbMat.emissive.setHex(0x000000);
+                    this.bulbMat.emissiveIntensity = 0;
                 }
             }
-            if (this.type === 'servo') {
-                // Simplified visualization (rotate if powered)
-                 if(voltage > 2) this.servoArm.rotation.y += 0.1;
+            if(this.type === 'servo' && stateData.voltage > 2) {
+                // Spin servo if powered
+                this.servoArm.rotation.y += 0.1;
+            }
+        }
+
+        highlight(bool) {
+            if(this.mesh.material.emissive !== undefined) {
+                 this.mesh.material.emissive.setHex(bool ? 0x444444 : 0x000000);
             }
         }
         
-        press() {
+        interact() {
             if(this.type === 'pushbutton') {
-                this.btnCap.position.y = 0.1;
-                this.internalState.pressed = true;
-                setTimeout(() => {
-                    this.btnCap.position.y = 0.15;
-                    this.internalState.pressed = false;
-                }, 200);
+                this.btnCap.position.y = 0.1; // Press down
+                setTimeout(() => { this.btnCap.position.y = 0.15; }, 150); // Release
+                return true; // Interaction handled
             }
+            return false;
         }
     }
 
-    // --- INTERACTION ---
+    // --- INTERACTION LOGIC ---
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
-    function getIntersect(e, objects) {
+    function getIntersect(event, objects) {
         const rect = container.getBoundingClientRect();
-        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
         raycaster.setFromCamera(mouse, camera);
         return raycaster.intersectObjects(objects)[0];
     }
 
+    // MOUSE MOVE
     container.addEventListener('mousemove', (e) => {
         const hit = getIntersect(e, [rayPlane]);
-        if(hit) {
-            const x = Math.round(hit.point.x/config.snap)*config.snap;
-            const z = Math.round(hit.point.z/config.snap)*config.snap;
-            document.getElementById('mouse-coords').innerText = `X: ${x} Z: ${z}`;
-            if(state.mode === 'PLACING' && state.ghost) state.ghost.position.set(x,0,z);
+        if (hit) {
+            const x = Math.round(hit.point.x / config.snap) * config.snap;
+            const z = Math.round(hit.point.z / config.snap) * config.snap;
+            document.getElementById('mouse-coords').innerText = `X: ${x.toFixed(1)} Z: ${z.toFixed(1)}`;
+
+            if (state.mode === 'PLACING' && state.ghost) {
+                state.ghost.position.set(x, 0, z);
+            }
         }
     });
 
+    // MOUSE DOWN
     container.addEventListener('mousedown', (e) => {
-        if(e.button===2) { 
-            if(state.mode==='PLACING') {
-                 state.rotation = (state.rotation+1)%4;
-                 if(state.ghost) state.ghost.rotation.y = -state.rotation*(Math.PI/2);
-            } else if (state.selection) {
-                state.rotation = (state.selection.rotationIndex+1)%4;
-                state.selection.setRotation(state.rotation);
-            }
-            return;
-        }
+        if(e.button === 2) { // Right Click
+             if (state.mode === 'PLACING') rotateGhost();
+             else if (state.selection) {
+                 state.rotation = (state.selection.rotationIndex + 1) % 4;
+                 state.selection.setRotation(state.rotation);
+             }
+             return;
+        } 
+        if (e.button !== 0) return;
 
-        if(state.mode === 'PLACING') {
+        // PLACING
+        if (state.mode === 'PLACING') {
             const hit = getIntersect(e, [rayPlane]);
-            if(hit) {
-                const c = new LabComponent(state.placingType, `${state.placingType.toUpperCase()}_${sceneObjects.components.length}`);
-                c.group.position.copy(state.ghost.position);
-                c.setRotation(state.rotation);
-                scene.add(c.group); sceneObjects.components.push(c);
-                if(!e.shiftKey) window.setMode('SELECT');
+            if (hit) {
+                const x = Math.round(hit.point.x / config.snap) * config.snap;
+                const z = Math.round(hit.point.z / config.snap) * config.snap;
+                
+                const comp = new LabComponent(state.placingType, `${state.placingType.toUpperCase()}_${sceneObjects.components.length+1}`);
+                comp.setRotation(state.rotation);
+                comp.setPosition(new THREE.Vector3(x, 0, z));
+                scene.add(comp.group);
+                sceneObjects.components.push(comp);
+                
+                setStatus(`Placed ${comp.name}`);
+                saveToLocal();
             }
             return;
         }
 
-        // Wire/Select/Interact
+        // SELECT / WIRE
         let hit = getIntersect(e, sceneObjects.pins);
-        if(hit) { handlePin(hit.object); return; }
+        if (hit && hit.object.userData.isPin) {
+            handlePinClick(hit.object);
+            return;
+        }
 
-        hit = getIntersect(e, sceneObjects.components.map(c=>c.mesh));
-        if(hit) {
+        const meshes = sceneObjects.components.map(c => c.mesh);
+        hit = getIntersect(e, meshes);
+        
+        if (hit) {
             const comp = hit.object.userData.parent;
-            if(state.isSimulating && comp.type === 'pushbutton') {
-                comp.press();
-                return;
+            if(state.isSimulating && comp.interact()) {
+                // Component handled its own click (e.g. button press)
+            } else if (state.mode === 'SELECT') {
+                selectComponent(comp);
             }
-            selectComp(comp);
         } else {
-            selectComp(null);
+            if(state.mode === 'SELECT') selectComponent(null);
         }
     });
 
-    function handlePin(pin) {
-        if(state.mode !== 'WIRE') return;
-        if(!state.wireStart) {
-            state.wireStart = pin;
-            pin.material.emissive.setHex(0xffff00);
+    function handlePinClick(pinMesh) {
+        if (state.mode !== 'WIRE') return;
+
+        if (!state.wireStart) {
+            state.wireStart = pinMesh;
+            pinMesh.material.emissive.setHex(0xffff00);
+            setStatus("Select Target Pin...");
         } else {
-            if(state.wireStart !== pin) createWire(state.wireStart, pin);
+            if (state.wireStart === pinMesh) return;
+            createWire(state.wireStart, pinMesh);
             state.wireStart.material.emissive.setHex(0x000000);
             state.wireStart = null;
+            setStatus("Wire Connected");
+            saveToLocal();
         }
     }
 
     function createWire(p1, p2) {
         const v1 = new THREE.Vector3(); p1.getWorldPosition(v1);
         const v2 = new THREE.Vector3(); p2.getWorldPosition(v2);
+        
         const dist = v1.distanceTo(v2);
-        const mid = v1.clone().add(v2).multiplyScalar(0.5); mid.y += dist*0.3;
+        const mid = v1.clone().add(v2).multiplyScalar(0.5);
+        mid.y += Math.max(1, dist * 0.4); 
+
         const curve = new THREE.QuadraticBezierCurve3(v1, mid, v2);
-        const mesh = new THREE.Mesh(new THREE.TubeGeometry(curve, 10, 0.03, 6, false), new THREE.MeshStandardMaterial({color:state.wireColor}));
+        const geo = new THREE.TubeGeometry(curve, 20, 0.03, 6, false);
+        const mat = new THREE.MeshStandardMaterial({ color: state.wireColor });
+        const mesh = new THREE.Mesh(geo, mat);
+        
         scene.add(mesh);
-        sceneObjects.wires.push({ mesh, start:p1, end:p2, startId:p1.userData.componentId, startPin:p1.userData.pinName, endId:p2.userData.componentId, endPin:p2.userData.pinName });
+        
+        const wireData = {
+            mesh: mesh,
+            startPin: p1,
+            endPin: p2,
+            startCompId: p1.userData.componentId,
+            startPinName: p1.userData.pinName,
+            endCompId: p2.userData.componentId,
+            endPinName: p2.userData.pinName,
+            color: state.wireColor
+        };
+        sceneObjects.wires.push(wireData);
     }
 
-    function selectComp(c) {
-        if(state.selection) state.selection.mesh.material.emissive.setHex(0x000000);
-        state.selection = c;
+    function selectComponent(comp) {
+        if (state.selection) state.selection.highlight(false);
+        state.selection = comp;
+        
         const panel = document.getElementById('prop-fields');
         const empty = document.getElementById('prop-empty');
-        if(c) {
-            c.mesh.material.emissive.setHex(0x444444);
-            panel.style.display='block'; empty.style.display='none';
-            document.getElementById('prop-name').value = c.name;
-            document.getElementById('prop-type').innerText = c.type.toUpperCase();
+
+        if (comp) {
+            comp.highlight(true);
+            panel.style.display = 'block';
+            empty.style.display = 'none';
+            document.getElementById('prop-name').value = comp.name;
+            document.getElementById('prop-type').innerText = comp.type.toUpperCase();
+            document.getElementById('prop-pos').innerText = `${comp.group.position.x.toFixed(1)}, ${comp.group.position.z.toFixed(1)}`;
         } else {
-            panel.style.display='none'; empty.style.display='block';
+            panel.style.display = 'none';
+            empty.style.display = 'block';
         }
     }
 
-    // --- SIMULATION RUNTIME (THE BRAIN) ---
-    let simInterval = null;
+    function rotateGhost() {
+        state.rotation = (state.rotation + 1) % 4;
+        if(state.ghost) state.ghost.rotation.y = -state.rotation * (Math.PI/2);
+    }
+
+    // --- KEYBOARD CONTROLS ---
+    window.addEventListener('keydown', (e) => {
+        if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+        if (e.key.toLowerCase() === 'r') {
+             if(state.mode === 'PLACING') rotateGhost();
+             else if(state.selection) {
+                 state.rotation = (state.selection.rotationIndex + 1) % 4;
+                 state.selection.setRotation(state.rotation);
+             }
+        }
+        if (e.key === 'Delete' || e.key === 'Backspace') deleteSelected();
+        if (e.key === 'Escape') window.setMode('SELECT');
+        if (e.key.toLowerCase() === 'c') window.toggleCode();
+    });
+
+    // --- UI FUNCTIONS ---
+    window.setMode = (mode) => {
+        state.mode = mode;
+        if (state.ghost) { scene.remove(state.ghost); state.ghost = null; }
+        if (state.wireStart) { state.wireStart.material.emissive.setHex(0x000000); state.wireStart = null; }
+        
+        document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+        if (mode === 'SELECT') document.getElementById('tool-select').classList.add('active');
+        if (mode === 'WIRE') document.getElementById('tool-wire').classList.add('active');
+        
+        const hint = document.getElementById('controls-hint');
+        mode === 'PLACING' ? hint.classList.add('visible') : hint.classList.remove('visible');
+        setStatus(`Mode: ${mode}`);
+    };
+
+    window.startPlacement = (type) => {
+        window.setMode('PLACING');
+        state.placingType = type;
+        state.rotation = 0;
+        
+        const temp = new LabComponent(type, 'ghost');
+        state.ghost = temp.group;
+        state.ghost.traverse(c => {
+            if(c.isMesh) {
+                c.material = c.material.clone();
+                c.material.transparent = true;
+                c.material.opacity = 0.5;
+                c.material.emissive.setHex(0x444444);
+            }
+        });
+        scene.add(state.ghost);
+    };
+
+    window.deleteSelected = () => {
+        if (state.selection) {
+            const comp = state.selection;
+            scene.remove(comp.group);
+            
+            const wiresToRemove = sceneObjects.wires.filter(w => w.startCompId === comp.id || w.endCompId === comp.id);
+            wiresToRemove.forEach(w => {
+                scene.remove(w.mesh);
+                sceneObjects.wires.splice(sceneObjects.wires.indexOf(w), 1);
+            });
+
+            comp.pins.forEach(p => {
+                const idx = sceneObjects.pins.indexOf(p);
+                if(idx > -1) sceneObjects.pins.splice(idx, 1);
+            });
+            sceneObjects.components.splice(sceneObjects.components.indexOf(comp), 1);
+
+            state.selection = null;
+            selectComponent(null);
+            saveToLocal();
+        }
+    };
+
+    window.setWireColor = (hex, el) => {
+        state.wireColor = hex;
+        document.querySelectorAll('.color-swatch').forEach(d => d.classList.remove('active'));
+        el.classList.add('active');
+    };
+
+    window.updateName = (val) => { if(state.selection) state.selection.name = val; };
+    window.toggleCode = () => { document.getElementById('code-editor').classList.toggle('open'); };
+    window.toggleCat = (el) => {
+        const content = el.nextElementSibling;
+        content.style.display = content.style.display === 'none' ? 'grid' : 'none';
+        el.querySelector('span').innerText = content.style.display === 'none' ? '◀' : '▼';
+    };
+    window.toggleHelp = () => {
+        const modal = document.getElementById('modal-overlay');
+        modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+    };
+    window.clearBoard = () => {
+        if(confirm("Clear the entire board?")) {
+            sceneObjects.components.slice().forEach(c => { state.selection = c; window.deleteSelected(); });
+            saveToLocal();
+        }
+    };
+
+    // --- SIMULATION ENGINE ---
     const serialOutput = document.getElementById('serial-output');
 
     window.toggleSim = async () => {
         state.isSimulating = !state.isSimulating;
-        const runBtn = document.getElementById('btn-run');
-        const stopBtn = document.getElementById('btn-stop');
-        
-        if(state.isSimulating) {
-            runBtn.style.display = 'none'; stopBtn.style.display = 'flex';
+        const btnRun = document.getElementById('btn-run');
+        const btnStop = document.getElementById('btn-stop');
+
+        if (state.isSimulating) {
+            btnRun.style.display = 'none'; btnStop.style.display = 'flex';
+            setStatus("Simulation Running...");
             serialOutput.innerText = "> Simulation Started...\n";
             startRuntime();
         } else {
-            runBtn.style.display = 'flex'; stopBtn.style.display = 'none';
-            if(simInterval) clearInterval(simInterval);
+            btnRun.style.display = 'flex'; btnStop.style.display = 'none';
+            setStatus("Simulation Stopped");
+            serialOutput.innerText += "\n> Simulation Stopped.";
             // Reset Visuals
             sceneObjects.components.forEach(c => {
-                 if(c.turnOn) c.turnOn(false);
-                 if(c.bulbMat) { c.bulbMat.emissive.setHex(0); c.bulbMat.emissiveIntensity=0; }
+                 if(c.updateVisuals) c.updateVisuals({voltage:0});
             });
-            serialOutput.innerText += "\n> Simulation Stopped.";
         }
     };
-
-    // This converts "Arduino C++" to Async JS
-    function transpileCode(code) {
-        let js = code;
-        // Basic Type replacements
-        js = js.replace(/int /g, 'var ');
-        js = js.replace(/float /g, 'var ');
-        js = js.replace(/const /g, '');
-        js = js.replace(/void setup/g, 'async function setup');
-        js = js.replace(/void loop/g, 'async function loop');
-        
-        // Inject await for delay to prevent browser freeze
-        js = js.replace(/delay\(/g, 'await delay(');
-        
-        return js;
-    }
 
     async function startRuntime() {
         const rawCode = document.getElementById('editor-text').value;
         const jsCode = transpileCode(rawCode);
 
-        // -- VIRTUAL HARDWARE API --
-        // State map for Arduino pins (e.g. "13": 1)
-        const pinState = {}; 
-
-        const pinMode = (pin, mode) => { /* No-op in visual sim */ };
+        // Define Virtual Environment
+        const pinState = {}; // Stores OUTPUT values
+        const serialBuffer = [];
+        
+        // --- ARDUINO API ---
+        const OUTPUT = 1, INPUT = 0, HIGH = 1, LOW = 0;
+        
+        const pinMode = (pin, mode) => { /* Virtual placeholder */ };
         
         const digitalWrite = (pin, val) => {
-            pinState[pin] = (val === 'HIGH' || val === 1) ? 1 : 0;
-            updateCircuit(pinState);
+            pinState[pin] = (val === 1 || val === 'HIGH') ? 1 : 0;
+            // Update Scene immediately on state change
+            propagateCircuit(pinState);
         };
         
-        const digitalRead = (pin) => {
-             // Basic implementation: check if pin connected to 5V or GND
-             return 0; 
-        };
-
+        const digitalRead = (pin) => { return 0; }; // TODO: Implement Input Reading
+        
         const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
         
         const Serial = {
-            begin: (rate) => { serialOutput.innerText += `> Serial started at ${rate} baud\n`; },
+            begin: (rate) => serialOutput.innerText += `> Serial Initialized (${rate})\n`,
             println: (msg) => { 
                 serialOutput.innerText += msg + "\n"; 
                 serialOutput.scrollTop = serialOutput.scrollHeight;
@@ -619,162 +961,203 @@ void loop() {
             print: (msg) => { serialOutput.innerText += msg; }
         };
 
-        // Constants
-        const OUTPUT=1, INPUT=0, HIGH=1, LOW=0, LED_BUILTIN=13;
-
+        // --- EXECUTION LOOP ---
         try {
-            // Eval the user code to define setup() and loop() in local scope
-            // We wrap in an async IIFE
             await eval(`(async () => {
                 ${jsCode}
                 
-                // System Loop
-                try {
-                    if(typeof setup === 'function') await setup();
-                    while(state.isSimulating) {
-                        if(typeof loop === 'function') await loop();
-                        await delay(10); // Minimum tick to prevent freeze
-                    }
-                } catch(e) {
-                    console.error(e);
-                    Serial.println("RUNTIME ERROR: " + e.message);
+                // System Boot
+                if(typeof setup === 'function') await setup();
+                
+                // Main Loop
+                while(state.isSimulating) {
+                    if(typeof loop === 'function') await loop();
+                    await delay(10); // Prevent browser freeze
                 }
             })()`);
         } catch(err) {
-            serialOutput.innerText += `> COMPILE ERROR: ${err.message}`;
+            console.error(err);
+            serialOutput.innerText += `> RUNTIME ERROR: ${err.message}\n`;
         }
     }
 
-    function updateCircuit(pinState) {
-        // 1. Find the active Arduino
-        const arduino = sceneObjects.components.find(c => c.type === 'uno');
+    function transpileCode(code) {
+        // Simple regex-based translation from C++ to Async JS
+        let js = code;
+        js = js.replace(/int /g, 'var ');
+        js = js.replace(/float /g, 'var ');
+        js = js.replace(/const /g, '');
+        js = js.replace(/void setup/g, 'async function setup');
+        js = js.replace(/void loop/g, 'async function loop');
+        js = js.replace(/delay\(/g, 'await delay(');
+        return js;
+    }
+
+    function propagateCircuit(pinState) {
+        // 1. Find the Arduino
+        const arduino = sceneObjects.components.find(c => ['uno', 'mega', 'esp32'].includes(c.type));
         if(!arduino) return;
 
-        // 2. Identify Powered Nets
-        // A "Net" is a set of connected pins.
-        // We look at wires connected to Arduino outputs.
+        // 2. Identify Active Source Pins (Power & High Signals)
+        let activePins = [];
         
-        const activePins = []; // Pins that are HIGH
-        
-        // Add always-on pins
-        const p5v = arduino.pins.find(p => p.userData.pinName === '5V');
-        if(p5v) activePins.push(p5v);
+        // Always add 5V/3V3 pins
+        arduino.pins.forEach(p => {
+            if(p.userData.pinName.match(/5V|3V3/)) activePins.push(p);
+        });
 
-        // Add digital pins that are HIGH
-        for(const [pinNum, val] of Object.entries(pinState)) {
+        // Add Digital Pins that are HIGH
+        for(const [pin, val] of Object.entries(pinState)) {
             if(val === 1) {
-                const p = arduino.pins.find(pin => pin.userData.pinName == pinNum);
+                const p = arduino.pins.find(p => p.userData.pinName == pin);
                 if(p) activePins.push(p);
             }
         }
 
-        // 3. Propagate to Components
-        // Check if LED Anode is connected to an Active Pin AND LED Cathode is connected to GND
-        const leds = sceneObjects.components.filter(c => c.type === 'led');
-        const gndPin = arduino.pins.find(p => p.userData.pinName === 'GND');
+        // 3. Find Ground Pins
+        const groundPins = arduino.pins.filter(p => p.userData.pinName.match(/GND/));
 
-        leds.forEach(led => {
-            const anode = led.pins.find(p => p.userData.pinName === 'A');
-            const cathode = led.pins.find(p => p.userData.pinName === 'C');
+        // 4. Update Components
+        sceneObjects.components.forEach(comp => {
+            if(comp === arduino) return;
             
-            const isPowered = isConnected(anode, activePins);
-            const isGrounded = isConnected(cathode, [gndPin]);
-
-            if(isPowered && isGrounded) led.updateVisuals(5);
-            else led.updateVisuals(0);
-        });
-        
-        // Servos
-        const servos = sceneObjects.components.filter(c => c.type === 'servo');
-        servos.forEach(s => {
-             const vcc = s.pins.find(p=>p.userData.pinName === 'VCC');
-             if(isConnected(vcc, activePins)) s.updateVisuals(5);
+            // Check for LED
+            if(comp.type === 'led') {
+                const anode = comp.pins.find(p => p.userData.pinName === 'A');
+                const cathode = comp.pins.find(p => p.userData.pinName === 'C');
+                
+                const hasPower = isConnected(anode, activePins);
+                const hasGround = isConnected(cathode, groundPins);
+                
+                comp.updateVisuals({ voltage: (hasPower && hasGround) ? 5 : 0 });
+            }
+            
+            // Check for Servo
+            if(comp.type === 'servo') {
+                const vcc = comp.pins.find(p => p.userData.pinName === 'VCC');
+                const gnd = comp.pins.find(p => p.userData.pinName === 'GND');
+                 const hasPower = isConnected(vcc, activePins);
+                 const hasGround = isConnected(gnd, groundPins);
+                 if(hasPower && hasGround) comp.updateVisuals({voltage:5});
+            }
         });
     }
 
-    function isConnected(startPin, targetPins) {
-        if(!startPin || !targetPins || targetPins.length === 0) return false;
+    function isConnected(startPin, targetSet) {
+        // BFS to find connectivity through wires and breadboards
+        if(!startPin || targetSet.length === 0) return false;
         
         let queue = [startPin];
         let visited = new Set();
+        
         while(queue.length > 0) {
-            let curr = queue.shift();
-            if(targetPins.includes(curr)) return true;
-            visited.add(curr);
+            let current = queue.shift();
+            if(targetSet.includes(current)) return true;
+            visited.add(current);
 
-            // Find neighbors
+            // 1. Traverse Wires
             sceneObjects.wires.forEach(w => {
                 let neighbor = null;
-                if(w.start === curr) neighbor = w.end;
-                if(w.end === curr) neighbor = w.start;
+                if(w.startPin === current) neighbor = w.endPin;
+                if(w.endPin === current) neighbor = w.startPin;
                 if(neighbor && !visited.has(neighbor)) queue.push(neighbor);
             });
             
-            // Breadboard Rail Logic (Shorting pins in same rail)
-            if(curr.userData.componentId) {
-                const comp = sceneObjects.components.find(c=>c.id === curr.userData.componentId);
+            // 2. Traverse Breadboard Rails
+            if(current.userData.componentId) {
+                const comp = sceneObjects.components.find(c => c.id === current.userData.componentId);
                 if(comp && comp.type === 'breadboard') {
-                    // Logic: Breadboard pins are connected? 
-                    // Simplified: all '+' are connected, all '-' are connected
-                    // Real simulation requires precise row/column logic, skipping for brevity
+                    // Simplified: All '+' are connected, all '-' are connected
+                    // Real implementation would check X/Z coords for rows
+                    const myType = current.userData.pinName; 
+                    comp.pins.forEach(p => {
+                        if(p !== current && p.userData.pinName === myType && !visited.has(p)) {
+                            queue.push(p);
+                        }
+                    });
                 }
             }
         }
         return false;
     }
 
-    // --- UTILS ---
-    window.setMode = (m) => {
-        state.mode = m;
-        if(state.ghost) { scene.remove(state.ghost); state.ghost=null; }
-        document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
-        if(m==='SELECT') document.getElementById('tool-select').classList.add('active');
-        if(m==='WIRE') document.getElementById('tool-wire').classList.add('active');
-        const h = document.getElementById('controls-hint');
-        m==='PLACING'?h.classList.add('visible'):h.classList.remove('visible');
-    };
-    
-    window.startPlacement = (t) => {
-        window.setMode('PLACING'); state.placingType=t; state.rotation=0;
-        const c = new LabComponent(t, 'Ghost');
-        state.ghost = c.group;
-        state.ghost.traverse(o => { if(o.isMesh) { o.material=o.material.clone(); o.material.transparent=true; o.material.opacity=0.5; }});
-        scene.add(state.ghost);
+    // --- SAVE / LOAD SYSTEM ---
+    window.saveCircuit = () => {
+        const data = {
+            components: sceneObjects.components.map(c => ({
+                type: c.type, name: c.name, id: c.id,
+                position: {x: c.group.position.x, y:c.group.position.y, z:c.group.position.z},
+                rotation: c.rotationIndex
+            })),
+            wires: sceneObjects.wires.map(w => ({
+                startCompId: w.startCompId, startPinName: w.startPinName,
+                endCompId: w.endCompId, endPinName: w.endPinName, color: w.color
+            })),
+            code: document.getElementById('editor-text').value
+        };
+        const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'vinsan_circuit.json'; a.click();
     };
 
-    window.toggleCode = () => { document.getElementById('code-editor').classList.toggle('open'); };
-    window.deleteSelected = () => {
-        if(!state.selection) return;
-        const c = state.selection;
-        scene.remove(c.group);
-        // Remove wires
-        for(let i=sceneObjects.wires.length-1; i>=0; i--) {
-            const w = sceneObjects.wires[i];
-            if(w.startId===c.id || w.endId===c.id) { scene.remove(w.mesh); sceneObjects.wires.splice(i,1); }
-        }
-        // Remove pins
-        c.pins.forEach(p => sceneObjects.pins.splice(sceneObjects.pins.indexOf(p),1));
-        sceneObjects.components.splice(sceneObjects.components.indexOf(c),1);
-        state.selection=null;
-        selectComp(null);
-    };
-    window.setWireColor = (c, el) => { state.wireColor=c; document.querySelectorAll('.color-swatch').forEach(e=>e.classList.remove('active')); el.classList.add('active'); };
-    window.toggleCat = (el) => { const c = el.nextElementSibling; c.style.display=c.style.display==='none'?'grid':'none'; };
-    window.toggleHelp = () => { const m = document.getElementById('modal-overlay'); m.style.display=m.style.display==='flex'?'none':'flex'; };
+    window.saveToLocal = () => { /* Auto-save stub */ };
 
-    // Loop
-    function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
+    window.loadCircuit = (input) => {
+        const file = input.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                sceneObjects.components.slice().forEach(c => { state.selection = c; deleteSelected(); });
+                
+                if(data.code) document.getElementById('editor-text').value = data.code;
+
+                data.components.forEach(cData => {
+                    const comp = new LabComponent(cData.type, cData.name, cData.id);
+                    comp.setRotation(cData.rotation);
+                    comp.setPosition(new THREE.Vector3(cData.position.x, cData.position.y, cData.position.z));
+                    scene.add(comp.group);
+                    sceneObjects.components.push(comp);
+                });
+
+                data.wires.forEach(wData => {
+                    const c1 = sceneObjects.components.find(c => c.id === wData.startCompId);
+                    const c2 = sceneObjects.components.find(c => c.id === wData.endCompId);
+                    if(c1 && c2) {
+                        const p1 = c1.pins.find(p => p.userData.pinName === wData.startPinName);
+                        const p2 = c2.pins.find(p => p.userData.pinName === wData.endPinName);
+                        if(p1 && p2) {
+                            state.wireColor = wData.color;
+                            createWire(p1, p2);
+                        }
+                    }
+                });
+                setStatus("Circuit Loaded");
+            } catch(err) {
+                console.error(err); alert("Failed to load circuit.");
+            }
+        };
+        reader.readAsText(file);
+    };
+
+    function setStatus(msg) { document.getElementById('status-msg').innerText = msg; }
+
+    // --- ANIMATION LOOP ---
+    function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+    }
     animate();
-    window.addEventListener('resize', () => { camera.aspect=container.clientWidth/container.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(container.clientWidth, container.clientHeight); });
-    
-    window.addEventListener('keydown', (e) => {
-        if(e.target.tagName==='TEXTAREA'||e.target.tagName==='INPUT') return;
-        if(e.key==='Escape') window.setMode('SELECT');
-        if(e.key==='Delete') window.deleteSelected();
-        if(e.key.toLowerCase()==='c') window.toggleCode();
-        if(e.key.toLowerCase()==='r' && state.mode==='PLACING') {
-            state.rotation=(state.rotation+1)%4; state.ghost.rotation.y=-state.rotation*(Math.PI/2);
-        }
+
+    window.addEventListener('resize', () => {
+        const w = container.clientWidth;
+        const h = container.clientHeight;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
     });
 </script>
 </body>
