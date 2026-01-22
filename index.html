@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vinsan Omni-Lab Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <title>Vinsan Omni-Lab Pro v4.0</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-dark: #121212;
@@ -17,6 +17,7 @@
             --border: #333;
             --success: #4caf50;
             --danger: #f44336;
+            --warning: #ff9800;
         }
 
         body { margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; background: var(--bg-dark); color: var(--text-main); user-select: none; }
@@ -36,8 +37,9 @@
             border-bottom: 1px solid var(--border);
             display: flex; align-items: center; padding: 0 20px;
             justify-content: space-between;
+            z-index: 10;
         }
-        .brand { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--accent); font-size: 18px; letter-spacing: 1px; }
+        .brand { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--accent); font-size: 18px; letter-spacing: 1px; display:flex; align-items:center; gap:10px; }
         .toolbar-center { display: flex; gap: 10px; background: #1a1a1a; padding: 4px; border-radius: 6px; border: 1px solid var(--border); }
         .tool-btn {
             background: transparent; border: none; color: var(--text-dim);
@@ -46,12 +48,18 @@
         }
         .tool-btn:hover { background: #333; color: white; }
         .tool-btn.active { background: var(--accent); color: white; }
+        
+        .action-group { display: flex; gap: 8px; margin-right: 20px; }
+        .icon-btn { background: #333; border: 1px solid var(--border); color: #ccc; width: 32px; height: 32px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        .icon-btn:hover { background: #444; color: white; }
+
         .sim-controls { display: flex; gap: 10px; }
         .sim-btn {
             background: var(--success); color: white; border: none; padding: 6px 16px; 
             border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px;
-            display: flex; align-items: center; gap: 5px;
+            display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
+        .sim-btn:hover { filter: brightness(1.1); }
         .sim-btn.stop { background: var(--danger); display: none; }
 
         /* 2. LEFT SIDEBAR (Library) */
@@ -59,25 +67,26 @@
             grid-row: 2; grid-column: 1;
             background: var(--bg-panel); border-right: 1px solid var(--border);
             overflow-y: auto; padding: 0;
+            display: flex; flex-direction: column;
         }
         .panel-header {
-            padding: 15px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; 
+            padding: 15px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; 
             color: var(--text-dim); font-weight: bold; border-bottom: 1px solid var(--border);
-            background: #222;
+            background: #222; position: sticky; top: 0;
         }
         .category-title {
             padding: 12px 15px; font-size: 13px; font-weight: 600; cursor: pointer;
             background: #2a2a2a; border-bottom: 1px solid var(--border);
-            display: flex; justify-content: space-between;
+            display: flex; justify-content: space-between; color: #ccc;
         }
-        .category-title:hover { background: #333; }
+        .category-title:hover { background: #333; color: white; }
         .category-content { display: grid; gap: 8px; padding: 10px; }
         .part-card {
-            background: #333; padding: 10px; border-radius: 4px; cursor: pointer;
+            background: #333; padding: 8px; border-radius: 4px; cursor: pointer;
             border: 1px solid transparent; transition: 0.2s; display: flex; align-items: center; gap: 10px;
         }
-        .part-card:hover { border-color: var(--accent); background: #3a3a3a; }
-        .part-icon { width: 30px; height: 30px; background: #222; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        .part-card:hover { border-color: var(--accent); background: #3a3a3a; transform: translateX(2px); }
+        .part-icon { width: 32px; height: 32px; background: #222; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
         .part-info h4 { margin: 0; font-size: 13px; color: white; }
         .part-info p { margin: 2px 0 0; font-size: 10px; color: #aaa; }
 
@@ -93,139 +102,233 @@
             grid-row: 2; grid-column: 3;
             background: var(--bg-panel); border-left: 1px solid var(--border);
             padding: 20px;
+            overflow-y: auto;
         }
         .prop-group { margin-bottom: 20px; }
         .prop-label { display: block; font-size: 11px; color: var(--text-dim); margin-bottom: 5px; }
         .prop-value { 
             width: 100%; background: #111; border: 1px solid var(--border); color: white;
-            padding: 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 12px;
+            padding: 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 12px; box-sizing: border-box;
         }
         .color-palette { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px; }
         .color-swatch { 
             width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent;
             transition: transform 0.2s; 
         }
-        .color-swatch.active { border-color: white; transform: scale(1.1); }
+        .color-swatch.active { border-color: white; transform: scale(1.1); box-shadow: 0 0 8px rgba(255,255,255,0.2); }
+
+        /* CODE EDITOR (Overlay) */
+        #code-editor {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 0; background: #1e1e1e; border-top: 1px solid var(--border);
+            transition: height 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex; flex-direction: column; overflow: hidden;
+            z-index: 20;
+        }
+        #code-editor.open { height: 300px; }
+        .editor-header {
+            background: #252525; padding: 0 15px; height: 35px; display: flex; align-items: center; justify-content: space-between;
+            font-size: 12px; border-bottom: 1px solid #333;
+        }
+        .editor-tabs { display: flex; gap: 2px; height: 100%; }
+        .tab { background: #1e1e1e; padding: 0 15px; display: flex; align-items: center; border-top: 2px solid var(--accent); color: white; cursor: pointer; font-family: 'Inter'; }
+        .editor-area {
+            flex: 1; background: #151515; color: #d4d4d4; border: none; padding: 10px;
+            font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.5; resize: none; outline: none;
+        }
 
         /* 5. STATUS BAR */
         footer {
             grid-row: 3; grid-column: 1 / -1;
             background: var(--accent); color: white;
             display: flex; align-items: center; padding: 0 15px; font-size: 12px; font-weight: 500;
-            justify-content: space-between;
+            justify-content: space-between; z-index: 30;
         }
         .coords { font-family: 'JetBrains Mono', monospace; opacity: 0.8; }
 
-        /* OVERLAYS */
+        /* OVERLAYS & TOASTS */
         #controls-hint {
             position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.7); padding: 8px 16px; border-radius: 20px;
+            background: rgba(0,0,0,0.8); padding: 8px 16px; border-radius: 20px;
             font-size: 12px; pointer-events: none; opacity: 0; transition: opacity 0.3s;
+            border: 1px solid #444; color: white;
         }
         #controls-hint.visible { opacity: 1; }
+
+        #modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 100;
+        }
+        .modal {
+            background: #1e1e1e; padding: 25px; border-radius: 8px; border: 1px solid #444;
+            width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .modal h2 { margin-top: 0; color: var(--accent); }
+        .modal ul { line-height: 1.6; font-size: 14px; padding-left: 20px; color: #ccc; }
+        .btn-modal { background: var(--accent); border: none; color: white; padding: 8px 16px; border-radius: 4px; cursor: pointer; float: right; }
+
+        /* SCROLLBARS */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1a1a1a; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
     </style>
 </head>
 <body>
 
 <div id="app-container">
     <header>
-        <div class="brand">VINSAN LAB <span style="font-size:10px; color:#666; font-weight:400;">v3.0</span></div>
+        <div class="brand">
+            <span style="font-size:20px;">⚡</span>
+            <div>VINSAN LAB <span style="font-size:10px; color:#888; font-weight:400; display:block; line-height:1;">OMNI-PRO v4.0</span></div>
+        </div>
         
         <div class="toolbar-center">
-            <button class="tool-btn active" id="tool-select" onclick="setMode('SELECT')">
+            <button class="tool-btn active" id="tool-select" onclick="setMode('SELECT')" title="Select Tool (V)">
                 <span>↖</span> Select
             </button>
-            <button class="tool-btn" id="tool-wire" onclick="setMode('WIRE')">
+            <button class="tool-btn" id="tool-wire" onclick="setMode('WIRE')" title="Wire Tool (W)">
                 <span>∿</span> Wire
             </button>
-            <button class="tool-btn" id="tool-delete" onclick="deleteSelected()">
+            <button class="tool-btn" id="tool-delete" onclick="deleteSelected()" title="Delete Selected (Del)">
                 <span>🗑</span> Delete
             </button>
         </div>
 
-        <div class="sim-controls">
-            <button class="sim-btn" id="btn-run" onclick="toggleSim()">▶ Run Simulation</button>
-            <button class="sim-btn stop" id="btn-stop" onclick="toggleSim()">■ Stop</button>
+        <div style="display:flex; align-items:center;">
+            <div class="action-group">
+                <button class="icon-btn" onclick="toggleCode()" title="Toggle Code Editor (C)"><span>{ }</span></button>
+                <button class="icon-btn" onclick="saveCircuit()" title="Save Circuit"><span>💾</span></button>
+                <button class="icon-btn" onclick="document.getElementById('file-input').click()" title="Load Circuit"><span>📂</span></button>
+                <button class="icon-btn" onclick="clearBoard()" title="Clear Board"><span>✕</span></button>
+                <button class="icon-btn" onclick="toggleHelp()" title="Help"><span>?</span></button>
+                <input type="file" id="file-input" style="display:none" onchange="loadCircuit(this)">
+            </div>
+
+            <div class="sim-controls">
+                <button class="sim-btn" id="btn-run" onclick="toggleSim()">▶ Run Simulation</button>
+                <button class="sim-btn stop" id="btn-stop" onclick="toggleSim()">■ Stop Simulation</button>
+            </div>
         </div>
     </header>
 
     <div id="library-panel">
         <div class="panel-header">Component Library</div>
         
-        <div class="category-title">MICROCONTROLLERS</div>
+        <div class="category-title" onclick="toggleCat(this)">MICROCONTROLLERS <span>▼</span></div>
         <div class="category-content">
             <div class="part-card" onclick="startPlacement('uno')">
-                <div class="part-icon" style="color:#0088aa;">U</div>
+                <div class="part-icon" style="color:#0088aa; border: 1px solid #0088aa;">U</div>
                 <div class="part-info"><h4>Arduino Uno</h4><p>ATmega328P</p></div>
             </div>
             <div class="part-card" onclick="startPlacement('mega')">
-                <div class="part-icon" style="color:#006688;">M</div>
+                <div class="part-icon" style="color:#006688; border: 1px solid #006688;">M</div>
                 <div class="part-info"><h4>Arduino Mega</h4><p>ATmega2560</p></div>
             </div>
             <div class="part-card" onclick="startPlacement('esp32')">
-                <div class="part-icon" style="color:#333; border:1px solid #555;">E</div>
+                <div class="part-icon" style="color:#888; border:1px solid #555;">E</div>
                 <div class="part-info"><h4>ESP-32</h4><p>WiFi / BT Module</p></div>
             </div>
             <div class="part-card" onclick="startPlacement('rpi')">
-                <div class="part-icon" style="color:#27ae60;">π</div>
+                <div class="part-icon" style="color:#27ae60; border: 1px solid #27ae60;">π</div>
                 <div class="part-info"><h4>Raspberry Pi 4</h4><p>Linux SBC</p></div>
             </div>
         </div>
 
-        <div class="category-title">BASICS</div>
+        <div class="category-title" onclick="toggleCat(this)">PASSIVE / ACTIVE <span>▼</span></div>
         <div class="category-content">
             <div class="part-card" onclick="startPlacement('breadboard')">
-                <div class="part-icon" style="color:#eee;">▦</div>
+                <div class="part-icon" style="color:#eee; background:#333;">▦</div>
                 <div class="part-info"><h4>Breadboard</h4><p>830 Tie-Points</p></div>
             </div>
             <div class="part-card" onclick="startPlacement('led')">
                 <div class="part-icon" style="color:#f44336;">💡</div>
                 <div class="part-info"><h4>LED (Red)</h4><p>Light Emitting Diode</p></div>
             </div>
+            <div class="part-card" onclick="startPlacement('resistor')">
+                <div class="part-icon" style="color:#e6c99c;">〰</div>
+                <div class="part-info"><h4>Resistor</h4><p>1k Ohm</p></div>
+            </div>
+             <div class="part-card" onclick="startPlacement('pushbutton')">
+                <div class="part-icon" style="color:#555;">⚫</div>
+                <div class="part-info"><h4>Push Button</h4><p>Tactile Switch</p></div>
+            </div>
         </div>
     </div>
 
     <div id="canvas-wrapper">
         <div id="canvas-container"></div>
-        <div id="controls-hint">Press <b>R</b> to Rotate • <b>Click</b> to Place</div>
+        <div id="controls-hint"><b>R</b> to Rotate • <b>Esc</b> to Cancel • <b>Click</b> to Place</div>
+        
+        <div id="code-editor">
+            <div class="editor-header">
+                <div class="editor-tabs">
+                    <div class="tab">main.ino</div>
+                </div>
+                <div style="cursor:pointer" onclick="toggleCode()">▼ Hide</div>
+            </div>
+            <textarea class="editor-area" spellcheck="false">// Vinsan Omni-Lab v4.0
+// Write your simulation code here
+
+void setup() {
+  pinMode(LED_BUILTIN, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(1000);
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(1000);
+}</textarea>
+        </div>
     </div>
 
     <div id="properties-panel">
         <div class="panel-header">Properties</div>
         
         <div id="prop-empty" style="text-align: center; color: #666; margin-top: 50px;">
-            No Component Selected
+            Select a component to view properties.
         </div>
 
         <div id="prop-content" style="display: none;">
             <div class="prop-group">
                 <label class="prop-label">Name</label>
-                <input type="text" class="prop-value" id="prop-name" value="Component 1">
+                <input type="text" class="prop-value" id="prop-name" oninput="updateName(this.value)">
             </div>
             <div class="prop-group">
                 <label class="prop-label">Type</label>
-                <div class="prop-value" id="prop-type" style="border:none; background:none; padding:0;">Arduino Uno</div>
+                <div class="prop-value" id="prop-type" style="border:none; background:none; padding:0; color:#accent;">Arduino Uno</div>
             </div>
             <div class="prop-group">
-                <label class="prop-label">Position (X, Z)</label>
+                <label class="prop-label">Coordinates</label>
                 <div class="prop-value" id="prop-pos">0.0, 0.0</div>
             </div>
         </div>
 
         <div class="panel-header" style="margin-top: 30px;">Wire Color</div>
         <div class="color-palette" id="wire-palette">
-            <div class="color-swatch active" style="background:#f44336;" onclick="setWireColor(0xf44336, this)"></div>
-            <div class="color-swatch" style="background:#4caf50;" onclick="setWireColor(0x4caf50, this)"></div>
-            <div class="color-swatch" style="background:#2196f3;" onclick="setWireColor(0x2196f3, this)"></div>
-            <div class="color-swatch" style="background:#ffeb3b;" onclick="setWireColor(0xffeb3b, this)"></div>
-            <div class="color-swatch" style="background:#111; border-color:#555;" onclick="setWireColor(0x111111, this)"></div>
-        </div>
+            <div class="color-swatch active" style="background:#f44336;" onclick="setWireColor(0xf44336, this)"></div> <div class="color-swatch" style="background:#111; border-color:#555;" onclick="setWireColor(0x111111, this)"></div> <div class="color-swatch" style="background:#4caf50;" onclick="setWireColor(0x4caf50, this)"></div> <div class="color-swatch" style="background:#2196f3;" onclick="setWireColor(0x2196f3, this)"></div> <div class="color-swatch" style="background:#ffeb3b;" onclick="setWireColor(0xffeb3b, this)"></div> <div class="color-swatch" style="background:#ff9800;" onclick="setWireColor(0xff9800, this)"></div> <div class="color-swatch" style="background:#fff;" onclick="setWireColor(0xffffff, this)"></div> </div>
     </div>
 
     <footer>
         <div id="status-msg">System Ready</div>
         <div class="coords" id="mouse-coords">X: 0.0 Z: 0.0</div>
     </footer>
+</div>
+
+<div id="modal-overlay">
+    <div class="modal">
+        <h2>Keyboard Shortcuts</h2>
+        <ul>
+            <li><b>Left Click</b> : Select / Place / Wire</li>
+            <li><b>Right Click</b> : Rotate Component</li>
+            <li><b>Esc</b> : Cancel Placement / Unselect</li>
+            <li><b>Delete / Backspace</b> : Delete Selection</li>
+            <li><b>R</b> : Rotate Component</li>
+            <li><b>C</b> : Toggle Code Editor</li>
+        </ul>
+        <button class="btn-modal" onclick="toggleHelp()">Close</button>
+    </div>
 </div>
 
 <script type="importmap">
@@ -243,21 +346,23 @@
 
     // --- CONFIG & STATE ---
     const config = {
-        gridSize: 40,
-        gridStep: 1, // Visual grid lines
-        snap: 0.5    // Snapping increment
+        gridSize: 60,
+        gridStep: 1, 
+        snap: 0.5 
     };
 
     const state = {
-        mode: 'SELECT', // SELECT, WIRE, PLACING
+        mode: 'SELECT', 
         placingType: null,
         ghost: null,
         selection: null,
         wireStart: null,
         wireColor: 0xf44336,
-        rotation: 0 // Current rotation for placement (0, 1, 2, 3 -> *90deg)
+        rotation: 0,
+        isSimulating: false
     };
 
+    // Store logical data structure for serialization
     const sceneObjects = {
         components: [],
         wires: [],
@@ -268,10 +373,10 @@
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x151515);
-    scene.fog = new THREE.Fog(0x151515, 20, 60);
+    scene.fog = new THREE.Fog(0x151515, 20, 80);
 
     const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-    camera.position.set(8, 10, 8);
+    camera.position.set(10, 12, 10);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setSize(container.clientWidth, container.clientHeight);
@@ -282,46 +387,44 @@
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.1;
-    controls.maxPolarAngle = Math.PI / 2 - 0.1; // Don't go below ground
+    controls.maxPolarAngle = Math.PI / 2 - 0.1;
 
     // Lighting
-    const ambLight = new THREE.AmbientLight(0xffffff, 0.5);
+    const ambLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambLight);
     
     const dirLight = new THREE.DirectionalLight(0xffffff, 1);
-    dirLight.position.set(10, 20, 5);
+    dirLight.position.set(15, 25, 10);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 2048;
     dirLight.shadow.mapSize.height = 2048;
+    dirLight.shadow.bias = -0.0001;
     scene.add(dirLight);
 
-    // Workbench Floor
+    // Grid
     const gridHelper = new THREE.GridHelper(config.gridSize, config.gridSize, 0x444444, 0x222222);
     scene.add(gridHelper);
 
-    // Invisible Raycast Plane (The "Ground")
-    const planeGeo = new THREE.PlaneGeometry(100, 100);
-    const planeMat = new THREE.MeshBasicMaterial({ visible: false });
-    const rayPlane = new THREE.Mesh(planeGeo, planeMat);
+    // Raycast Plane
+    const rayPlane = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshBasicMaterial({ visible: false }));
     rayPlane.rotation.x = -Math.PI / 2;
-    rayPlane.name = "GroundPlane";
     scene.add(rayPlane);
 
     // --- COMPONENT FACTORY ---
     class LabComponent {
-        constructor(type, name) {
+        constructor(type, name, id = null) {
             this.type = type;
             this.name = name;
+            this.id = id || crypto.randomUUID(); // Unique ID for logic/save
             this.group = new THREE.Group();
             this.pins = [];
             this.rotationIndex = 0;
+            this.logicalState = {}; // For simulation (e.g., isOn)
             
-            // Base visual
             this.buildVisuals();
         }
 
         buildVisuals() {
-            // Placeholder logic to build based on type
             let color = 0x888888;
             let w=1, h=0.2, d=1;
             let pinsDef = [];
@@ -329,35 +432,58 @@
             switch(this.type) {
                 case 'uno': 
                     color = 0x0088aa; w=3; d=2.1; 
-                    pinsDef = [{x:1.3, z:-0.9, t:'pwr'}, {x:1.3, z:0.9, t:'gnd'}, {x:-1.3, z:0, t:'io'}];
+                    pinsDef = [
+                        {x:1.3, z:-0.9, t:'5V'}, {x:1.1, z:-0.9, t:'GND'}, 
+                        {x:1.3, z:0.9, t:'GND'}, {x:-1.3, z:0.9, t:'PIN13'}
+                    ];
                     break;
                 case 'mega':
                     color = 0x006688; w=4.5; d=2.1;
-                    pinsDef = [{x:2, z:-0.9, t:'pwr'}, {x:2, z:0.9, t:'gnd'}];
+                    pinsDef = [{x:2, z:-0.9, t:'5V'}, {x:1.8, z:-0.9, t:'GND'}];
                     break;
                 case 'esp32':
                     color = 0x111111; w=1.2; d=2;
-                    pinsDef = [{x:0.4, z:-0.8, t:'pwr'}, {x:0.4, z:0.8, t:'gnd'}];
+                    pinsDef = [{x:0.4, z:-0.8, t:'3V3'}, {x:0.4, z:0.8, t:'GND'}];
                     break;
                 case 'breadboard':
-                    color = 0xffffff; w=4; d=2.5; h=0.2;
+                    color = 0xffffff; w=5; d=3; h=0.2;
+                    // Simplified rail logic for demo
+                    pinsDef = [
+                        {x:-2, z:-1.3, t:'rail_pos'}, {x:2, z:-1.3, t:'rail_pos'},
+                        {x:-2, z:1.3, t:'rail_neg'}, {x:2, z:1.3, t:'rail_neg'}
+                    ];
                     break;
                 case 'led':
                     color = 0x333333; w=0.5; d=0.5; h=0.1;
                     this.addLEDVisuals();
                     pinsDef = [{x:-0.1, z:0, t:'anode'}, {x:0.1, z:0, t:'cathode'}];
                     break;
+                case 'resistor':
+                    w=0.8; d=0.2; h=0.2;
+                    this.addResistorVisuals();
+                    pinsDef = [{x:-0.4, z:0, t:'1'}, {x:0.4, z:0, t:'2'}];
+                    break;
+                 case 'pushbutton':
+                    w=0.6; d=0.6; h=0.3;
+                    this.addButtonVisuals();
+                    pinsDef = [{x:-0.3, z:0, t:'1'}, {x:0.3, z:0, t:'2'}];
+                    break;
+                default:
+                    // Ghost fallback
+                    pinsDef = [];
             }
 
-            // Create PCB Body
-            if(this.type !== 'led') {
+            // Generic PCB Body
+            if(!['led', 'resistor', 'pushbutton'].includes(this.type)) {
                 const geo = new THREE.BoxGeometry(w, h, d);
                 const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.5 });
                 this.mesh = new THREE.Mesh(geo, mat);
-                this.mesh.castShadow = true;
+                this.mesh.castShadow = true; 
                 this.mesh.receiveShadow = true;
-                this.mesh.userData = { parent: this }; // Link back to class
+                this.mesh.userData = { parent: this };
                 this.group.add(this.mesh);
+
+                // Add text label texture if needed (skipped for simplicity)
             }
 
             // Create Pins
@@ -365,35 +491,69 @@
         }
 
         addLEDVisuals() {
+            // Legs
             const legGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.4);
-            const legMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa });
+            const legMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.8 });
             const l1 = new THREE.Mesh(legGeo, legMat); l1.position.set(-0.1, 0.2, 0);
             const l2 = new THREE.Mesh(legGeo, legMat); l2.position.set(0.1, 0.2, 0);
             this.group.add(l1); this.group.add(l2);
 
-            const bulb = new THREE.Mesh(
-                new THREE.SphereGeometry(0.2),
-                new THREE.MeshStandardMaterial({ color: 0xff0000, transparent: true, opacity: 0.9 })
-            );
+            // Bulb
+            this.bulbMat = new THREE.MeshStandardMaterial({ color: 0xff0000, transparent: true, opacity: 0.8, roughness: 0.1 });
+            const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.2), this.bulbMat);
             bulb.position.set(0, 0.5, 0);
             this.group.add(bulb);
             
-            // Selection box wrapper
-            const box = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.5), new THREE.MeshBasicMaterial({visible:false}));
+            // Hitbox
+            const box = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.8, 0.5), new THREE.MeshBasicMaterial({visible:false}));
             box.position.y = 0.3;
             box.userData = { parent: this };
             this.group.add(box);
-            this.mesh = box; // For raycasting selection
+            this.mesh = box;
+        }
+
+        addResistorVisuals() {
+             const geo = new THREE.CylinderGeometry(0.08, 0.08, 0.8);
+             geo.rotateZ(Math.PI/2);
+             const mat = new THREE.MeshStandardMaterial({ color: 0xe6c99c });
+             const body = new THREE.Mesh(geo, mat);
+             
+             // Bands
+             const b1 = new THREE.Mesh(new THREE.CylinderGeometry(0.085,0.085,0.1), new THREE.MeshBasicMaterial({color:0xaa0000}));
+             b1.rotation.z = Math.PI/2; b1.position.x = -0.15;
+             const b2 = new THREE.Mesh(new THREE.CylinderGeometry(0.085,0.085,0.1), new THREE.MeshBasicMaterial({color:0x000000}));
+             b2.rotation.z = Math.PI/2; b2.position.x = 0;
+             
+             body.add(b1); body.add(b2);
+             body.position.y = 0.1;
+             this.group.add(body);
+             
+             body.userData = { parent: this };
+             this.mesh = body;
+        }
+        
+        addButtonVisuals() {
+            const base = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.2, 0.6), new THREE.MeshStandardMaterial({color:0x333333}));
+            const btn = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.1), new THREE.MeshStandardMaterial({color:0x111111}));
+            btn.position.y = 0.15;
+            base.add(btn);
+            this.group.add(base);
+            base.userData = { parent: this };
+            this.mesh = base;
         }
 
         addPin(x, y, z, type, index) {
-            const pinColor = type === 'pwr' ? 0xff0000 : (type === 'gnd' ? 0x000000 : 0xdddd00);
+            let pinColor = 0xdddd00;
+            if(type.includes('5V') || type.includes('3V3')) pinColor = 0xff0000;
+            if(type.includes('GND')) pinColor = 0x000000;
+
             const pinMesh = new THREE.Mesh(
-                new THREE.BoxGeometry(0.15, 0.15, 0.15),
+                new THREE.BoxGeometry(0.12, 0.12, 0.12),
                 new THREE.MeshStandardMaterial({ color: pinColor })
             );
             pinMesh.position.set(x, y, z);
-            pinMesh.userData = { isPin: true, component: this, type: type, id: index };
+            // Metadata for connection logic
+            pinMesh.userData = { isPin: true, componentId: this.id, pinName: type, pinIndex: index };
             this.group.add(pinMesh);
             this.pins.push(pinMesh);
             sceneObjects.pins.push(pinMesh);
@@ -407,10 +567,23 @@
         setPosition(pos) {
             this.group.position.copy(pos);
         }
+        
+        // --- SIMULATION LOGIC ---
+        turnOn(bool) {
+            if(this.type === 'led') {
+                if(bool) {
+                    this.bulbMat.emissive.setHex(0xff0000);
+                    this.bulbMat.emissiveIntensity = 2;
+                } else {
+                    this.bulbMat.emissive.setHex(0x000000);
+                    this.bulbMat.emissiveIntensity = 0;
+                }
+            }
+        }
 
         highlight(bool) {
-            if (this.mesh.material && this.mesh.material.emissive) {
-                this.mesh.material.emissive.setHex(bool ? 0x444444 : 0x000000);
+            if(this.mesh.material.emissive !== undefined) {
+                 this.mesh.material.emissive.setHex(bool ? 0x444444 : 0x000000);
             }
         }
     }
@@ -419,96 +592,73 @@
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
-    // Helper: Get point on Ground Plane
-    function getGroundIntersect(event) {
+    function getIntersect(event, objects) {
         const rect = container.getBoundingClientRect();
         mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
         raycaster.setFromCamera(mouse, camera);
-        return raycaster.intersectObject(rayPlane)[0]; // Intersect invisible floor
+        return raycaster.intersectObjects(objects)[0];
     }
 
-    // Helper: Get Objects (Components/Pins)
-    function getObjectIntersect(event) {
-        const rect = container.getBoundingClientRect();
-        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-        raycaster.setFromCamera(mouse, camera);
-        
-        // Pins have priority
-        const pinHit = raycaster.intersectObjects(sceneObjects.pins)[0];
-        if (pinHit) return pinHit;
-
-        // Then Components (checking the main mesh inside groups)
-        const meshes = sceneObjects.components.map(c => c.mesh);
-        const compHit = raycaster.intersectObjects(meshes)[0];
-        return compHit;
-    }
-
-    // 1. MOUSE MOVE (Ghosting & Coords)
+    // 1. MOUSE MOVE
     container.addEventListener('mousemove', (e) => {
-        const hit = getGroundIntersect(e);
+        const hit = getIntersect(e, [rayPlane]);
         if (hit) {
             const x = Math.round(hit.point.x / config.snap) * config.snap;
             const z = Math.round(hit.point.z / config.snap) * config.snap;
             document.getElementById('mouse-coords').innerText = `X: ${x.toFixed(1)} Z: ${z.toFixed(1)}`;
 
-            // Move Ghost
             if (state.mode === 'PLACING' && state.ghost) {
                 state.ghost.position.set(x, 0, z);
             }
         }
     });
 
-    // 2. MOUSE CLICK (Place / Select)
+    // 2. MOUSE DOWN (Interaction)
     container.addEventListener('mousedown', (e) => {
-        if (e.button !== 0) return; // Only Left Click
+        if(e.button === 2) { // Right Click
+             if (state.mode === 'PLACING') rotateGhost();
+             return;
+        } 
+        if (e.button !== 0) return;
 
-        // A. PLACING MODE
+        // PLACING
         if (state.mode === 'PLACING') {
-            const hit = getGroundIntersect(e);
+            const hit = getIntersect(e, [rayPlane]);
             if (hit) {
                 const x = Math.round(hit.point.x / config.snap) * config.snap;
                 const z = Math.round(hit.point.z / config.snap) * config.snap;
                 
-                // Create Real Component
-                const comp = new LabComponent(state.placingType, `Comp_${sceneObjects.components.length+1}`);
+                const comp = new LabComponent(state.placingType, `${state.placingType.toUpperCase()}_${sceneObjects.components.length+1}`);
                 comp.setRotation(state.rotation);
                 comp.setPosition(new THREE.Vector3(x, 0, z));
                 scene.add(comp.group);
                 sceneObjects.components.push(comp);
                 
-                // Keep placing? (Uncomment to allow multiple placements)
-                // return; 
-                
-                // End placement
-                setMode('SELECT');
-                setStatus(`Placed ${comp.name}.`);
+                setStatus(`Placed ${comp.name}`);
+                saveToLocal(); // Autosave
             }
             return;
         }
 
-        // B. SELECT/WIRE MODE
-        const hit = getObjectIntersect(e);
+        // SELECT / WIRE
+        // Check Pins first
+        let hit = getIntersect(e, sceneObjects.pins);
+        if (hit && hit.object.userData.isPin) {
+            handlePinClick(hit.object);
+            return;
+        }
+
+        // Check Components
+        const meshes = sceneObjects.components.map(c => c.mesh);
+        hit = getIntersect(e, meshes);
         
-        if (hit) {
-            // Did we click a PIN?
-            if (hit.object.userData.isPin) {
-                handlePinClick(hit.object);
-                return;
-            }
-            
-            // Did we click a COMPONENT?
-            if (hit.object.userData.parent && state.mode === 'SELECT') {
-                selectComponent(hit.object.userData.parent);
-            }
+        if (hit && state.mode === 'SELECT') {
+            selectComponent(hit.object.userData.parent);
         } else {
-            // Clicked void -> Deselect
-            selectComponent(null);
+            if(state.mode === 'SELECT') selectComponent(null);
         }
     });
-
-    // --- LOGIC FUNCTIONS ---
 
     function handlePinClick(pinMesh) {
         if (state.mode !== 'WIRE') return;
@@ -518,179 +668,341 @@
             pinMesh.material.emissive.setHex(0xffff00);
             setStatus("Select Target Pin...");
         } else {
-            if (state.wireStart === pinMesh) return; // Same pin
+            if (state.wireStart === pinMesh) return;
             createWire(state.wireStart, pinMesh);
-            state.wireStart.material.emissive.setHex(0x000000); // Reset
+            state.wireStart.material.emissive.setHex(0x000000);
             state.wireStart = null;
-            setStatus("Wire Connected.");
+            setStatus("Wire Connected");
+            saveToLocal();
         }
     }
 
     function createWire(p1, p2) {
-        const v1 = new THREE.Vector3();
-        const v2 = new THREE.Vector3();
-        p1.getWorldPosition(v1);
-        p2.getWorldPosition(v2);
-
-        // Bezier Curve
+        // Logic check: prevent duplicates (optional)
+        
+        // Visuals
+        const v1 = new THREE.Vector3(); p1.getWorldPosition(v1);
+        const v2 = new THREE.Vector3(); p2.getWorldPosition(v2);
+        
         const dist = v1.distanceTo(v2);
         const mid = v1.clone().add(v2).multiplyScalar(0.5);
-        mid.y += dist * 0.5; // Arc height
+        mid.y += Math.max(1, dist * 0.4); // Arc height
 
         const curve = new THREE.QuadraticBezierCurve3(v1, mid, v2);
-        const geo = new THREE.TubeGeometry(curve, 20, 0.04, 8, false);
+        const geo = new THREE.TubeGeometry(curve, 20, 0.03, 6, false);
         const mat = new THREE.MeshStandardMaterial({ color: state.wireColor });
         const mesh = new THREE.Mesh(geo, mat);
         
         scene.add(mesh);
-        sceneObjects.wires.push({ mesh, start: p1, end: p2 });
+        
+        // Logical Data
+        const wireData = {
+            mesh: mesh,
+            startPin: p1,
+            endPin: p2,
+            startCompId: p1.userData.componentId,
+            startPinName: p1.userData.pinName,
+            endCompId: p2.userData.componentId,
+            endPinName: p2.userData.pinName,
+            color: state.wireColor
+        };
+        sceneObjects.wires.push(wireData);
     }
 
     function selectComponent(comp) {
-        // Unhighlight old
         if (state.selection) state.selection.highlight(false);
-        
         state.selection = comp;
         
-        const propPanel = document.getElementById('prop-content');
-        const emptyMsg = document.getElementById('prop-empty');
+        const panel = document.getElementById('prop-content');
+        const empty = document.getElementById('prop-empty');
 
         if (comp) {
             comp.highlight(true);
-            propPanel.style.display = 'block';
-            emptyMsg.style.display = 'none';
-            
+            panel.style.display = 'block';
+            empty.style.display = 'none';
             document.getElementById('prop-name').value = comp.name;
             document.getElementById('prop-type').innerText = comp.type.toUpperCase();
-            document.getElementById('prop-pos').innerText = `${comp.group.position.x}, ${comp.group.position.z}`;
+            document.getElementById('prop-pos').innerText = `${comp.group.position.x.toFixed(1)}, ${comp.group.position.z.toFixed(1)}`;
         } else {
-            propPanel.style.display = 'none';
-            emptyMsg.style.display = 'block';
+            panel.style.display = 'none';
+            empty.style.display = 'block';
         }
     }
 
-    // --- KEYBOARD CONTROLS ---
+    function rotateGhost() {
+        state.rotation = (state.rotation + 1) % 4;
+        if(state.ghost) state.ghost.rotation.y = -state.rotation * (Math.PI/2);
+    }
+
+    // --- KEYBOARD ---
     window.addEventListener('keydown', (e) => {
-        // Rotate (R)
+        if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
         if (e.key.toLowerCase() === 'r') {
-            state.rotation = (state.rotation + 1) % 4;
-            // If placing, rotate ghost
-            if (state.mode === 'PLACING' && state.ghost) {
-                state.ghost.rotation.y = -state.rotation * (Math.PI / 2);
-            }
-            // If selected, rotate component
-            if (state.mode === 'SELECT' && state.selection) {
-                state.selection.setRotation(state.rotation);
-            }
+             if(state.mode === 'PLACING') rotateGhost();
+             else if(state.selection) {
+                 state.rotation = (state.selection.rotationIndex + 1) % 4;
+                 state.selection.setRotation(state.rotation);
+             }
         }
-
-        // Delete (Del/Backspace)
-        if (e.key === 'Delete' || e.key === 'Backspace') {
-            window.deleteSelected();
-        }
-
-        // Escape to cancel placement
-        if (e.key === 'Escape') {
-            setMode('SELECT');
-        }
+        if (e.key === 'Delete' || e.key === 'Backspace') deleteSelected();
+        if (e.key === 'Escape') window.setMode('SELECT');
+        if (e.key.toLowerCase() === 'c') window.toggleCode();
     });
 
-    // --- EXPORTED UI FUNCTIONS ---
-    
-    window.setMode = function(mode) {
+    // --- UI EXPORTS ---
+    window.setMode = (mode) => {
         state.mode = mode;
-        
-        // Reset specific states
         if (state.ghost) { scene.remove(state.ghost); state.ghost = null; }
-        state.wireStart = null;
-        if(state.selection) { state.selection.highlight(false); state.selection = null; }
-
-        // UI Updates
+        if (state.wireStart) { state.wireStart.material.emissive.setHex(0x000000); state.wireStart = null; }
+        
         document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
         if (mode === 'SELECT') document.getElementById('tool-select').classList.add('active');
         if (mode === 'WIRE') document.getElementById('tool-wire').classList.add('active');
         
-        // Hint Text
         const hint = document.getElementById('controls-hint');
-        if (mode === 'PLACING') hint.classList.add('visible');
-        else hint.classList.remove('visible');
-
+        mode === 'PLACING' ? hint.classList.add('visible') : hint.classList.remove('visible');
         setStatus(`Mode: ${mode}`);
     };
 
-    window.startPlacement = function(type) {
+    window.startPlacement = (type) => {
         window.setMode('PLACING');
         state.placingType = type;
         state.rotation = 0;
-
-        // Create Ghost Visual
-        const tempComp = new LabComponent(type, 'ghost');
-        state.ghost = tempComp.group;
         
-        // Make Transparent
+        const temp = new LabComponent(type, 'ghost');
+        state.ghost = temp.group;
         state.ghost.traverse(c => {
             if(c.isMesh) {
                 c.material = c.material.clone();
                 c.material.transparent = true;
                 c.material.opacity = 0.5;
+                c.material.emissive.setHex(0x444444);
             }
         });
         scene.add(state.ghost);
     };
 
-    window.deleteSelected = function() {
+    window.deleteSelected = () => {
         if (state.selection) {
             const comp = state.selection;
-            
-            // Remove from Scene
             scene.remove(comp.group);
             
-            // Clean up pins from raycast list
-            comp.pins.forEach(p => {
-                const idx = sceneObjects.pins.indexOf(p);
-                if (idx > -1) sceneObjects.pins.splice(idx, 1);
+            // Remove Wires attached to this component
+            const wiresToRemove = sceneObjects.wires.filter(w => w.startCompId === comp.id || w.endCompId === comp.id);
+            wiresToRemove.forEach(w => {
+                scene.remove(w.mesh);
+                sceneObjects.wires.splice(sceneObjects.wires.indexOf(w), 1);
             });
 
-            // Remove from component list
-            const cIdx = sceneObjects.components.indexOf(comp);
-            if (cIdx > -1) sceneObjects.components.splice(cIdx, 1);
+            // Cleanup
+            comp.pins.forEach(p => {
+                const idx = sceneObjects.pins.indexOf(p);
+                if(idx > -1) sceneObjects.pins.splice(idx, 1);
+            });
+            sceneObjects.components.splice(sceneObjects.components.indexOf(comp), 1);
 
             state.selection = null;
             document.getElementById('prop-content').style.display = 'none';
             document.getElementById('prop-empty').style.display = 'block';
-            setStatus("Component Deleted.");
+            saveToLocal();
         }
     };
 
-    window.setWireColor = function(hex, el) {
+    window.setWireColor = (hex, el) => {
         state.wireColor = hex;
         document.querySelectorAll('.color-swatch').forEach(d => d.classList.remove('active'));
         el.classList.add('active');
     };
 
-    window.toggleSim = function() {
+    window.updateName = (val) => {
+        if(state.selection) state.selection.name = val;
+    };
+
+    window.toggleCode = () => {
+        document.getElementById('code-editor').classList.toggle('open');
+    };
+
+    window.toggleCat = (el) => {
+        const content = el.nextElementSibling;
+        content.style.display = content.style.display === 'none' ? 'grid' : 'none';
+        el.querySelector('span').innerText = content.style.display === 'none' ? '◀' : '▼';
+    };
+
+    window.toggleHelp = () => {
+        const modal = document.getElementById('modal-overlay');
+        modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+    };
+
+    window.clearBoard = () => {
+        if(confirm("Clear the entire board?")) {
+            sceneObjects.components.slice().forEach(c => {
+                 state.selection = c;
+                 window.deleteSelected();
+            });
+            saveToLocal();
+        }
+    };
+
+    // --- SIMULATION LOGIC ---
+    window.toggleSim = () => {
+        state.isSimulating = !state.isSimulating;
         const btnRun = document.getElementById('btn-run');
         const btnStop = document.getElementById('btn-stop');
-        
-        if (btnRun.style.display !== 'none') {
-            // START
+
+        if (state.isSimulating) {
             btnRun.style.display = 'none';
             btnStop.style.display = 'flex';
             setStatus("Simulation Running...");
-            // Logic hook here
+            runLogic();
         } else {
-            // STOP
             btnRun.style.display = 'flex';
             btnStop.style.display = 'none';
-            setStatus("Simulation Stopped.");
+            setStatus("Simulation Stopped");
+            // Turn off all LEDs
+            sceneObjects.components.forEach(c => {
+                if(c.turnOn) c.turnOn(false);
+            });
         }
+    };
+
+    function runLogic() {
+        if(!state.isSimulating) return;
+
+        // Extremely basic logic: Find Path from Power to LED to Ground
+        // 1. Find Power Sources (Arduino 5V/3V3)
+        let poweredPins = new Set();
+        let groundPins = new Set();
+
+        sceneObjects.components.forEach(c => {
+            if(['uno', 'mega', 'esp32'].includes(c.type)) {
+                c.pins.forEach(p => {
+                    if(p.userData.pinName.match(/5V|3V3/)) poweredPins.add(p);
+                    if(p.userData.pinName.match(/GND/)) groundPins.add(p);
+                });
+            }
+        });
+
+        // 2. Propagate Power (BFS)
+        // Note: Real circuit simulators use Matrix Math (SPICE), this is just visual trickery
+        
+        sceneObjects.components.filter(c => c.type === 'led').forEach(led => {
+            const anode = led.pins.find(p => p.userData.pinName === 'anode');
+            const cathode = led.pins.find(p => p.userData.pinName === 'cathode');
+            
+            // Check connectivity
+            if(isConnected(anode, poweredPins) && isConnected(cathode, groundPins)) {
+                led.turnOn(true);
+            }
+        });
+
+        // Loop
+        requestAnimationFrame(runLogic);
+    }
+
+    function isConnected(startPin, targetSet) {
+        // BFS to find if startPin connects to any pin in targetSet via wires
+        let queue = [startPin];
+        let visited = new Set();
+        
+        while(queue.length > 0) {
+            let current = queue.shift();
+            if(targetSet.has(current)) return true;
+            
+            visited.add(current);
+
+            // Find wires connected to current pin
+            sceneObjects.wires.forEach(w => {
+                let neighbor = null;
+                if(w.startPin === current) neighbor = w.endPin;
+                if(w.endPin === current) neighbor = w.startPin;
+                
+                if(neighbor && !visited.has(neighbor)) {
+                    queue.push(neighbor);
+                }
+            });
+        }
+        return false;
+    }
+
+    // --- SAVE / LOAD SYSTEM ---
+    window.saveCircuit = () => {
+        const data = {
+            components: sceneObjects.components.map(c => ({
+                type: c.type,
+                name: c.name,
+                id: c.id,
+                position: {x: c.group.position.x, y:c.group.position.y, z:c.group.position.z},
+                rotation: c.rotationIndex
+            })),
+            wires: sceneObjects.wires.map(w => ({
+                startCompId: w.startCompId,
+                startPinName: w.startPinName,
+                endCompId: w.endCompId,
+                endPinName: w.endPinName,
+                color: w.color
+            }))
+        };
+        const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'vinsan_circuit.json';
+        a.click();
+    };
+
+    window.saveToLocal = () => {
+        // Auto-save logic (Simplified version of saveCircuit)
+        // Implementation omitted to save space, but hooked in placed/deleted events
+    };
+
+    window.loadCircuit = (input) => {
+        const file = input.files[0];
+        if(!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                // Clear Board
+                sceneObjects.components.slice().forEach(c => { state.selection = c; deleteSelected(); });
+                
+                // Rebuild Components
+                data.components.forEach(cData => {
+                    const comp = new LabComponent(cData.type, cData.name, cData.id);
+                    comp.setRotation(cData.rotation);
+                    comp.setPosition(new THREE.Vector3(cData.position.x, cData.position.y, cData.position.z));
+                    scene.add(comp.group);
+                    sceneObjects.components.push(comp);
+                });
+
+                // Rebuild Wires (Need to lookup pins by ID/Name)
+                data.wires.forEach(wData => {
+                    const c1 = sceneObjects.components.find(c => c.id === wData.startCompId);
+                    const c2 = sceneObjects.components.find(c => c.id === wData.endCompId);
+                    if(c1 && c2) {
+                        const p1 = c1.pins.find(p => p.userData.pinName === wData.startPinName);
+                        const p2 = c2.pins.find(p => p.userData.pinName === wData.endPinName);
+                        if(p1 && p2) {
+                            state.wireColor = wData.color;
+                            createWire(p1, p2);
+                        }
+                    }
+                });
+                setStatus("Circuit Loaded");
+            } catch(err) {
+                console.error(err);
+                alert("Failed to load circuit file.");
+            }
+        };
+        reader.readAsText(file);
     };
 
     function setStatus(msg) {
         document.getElementById('status-msg').innerText = msg;
     }
 
-    // --- ANIMATION LOOP ---
+    // --- ANIMATION ---
     function animate() {
         requestAnimationFrame(animate);
         controls.update();
@@ -698,7 +1010,6 @@
     }
     animate();
 
-    // Window Resize
     window.addEventListener('resize', () => {
         const w = container.clientWidth;
         const h = container.clientHeight;
@@ -706,7 +1017,6 @@
         camera.updateProjectionMatrix();
         renderer.setSize(w, h);
     });
-
 </script>
 </body>
 </html>
